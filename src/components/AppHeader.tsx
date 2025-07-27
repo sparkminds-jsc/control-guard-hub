@@ -6,7 +6,6 @@ export const AppHeader = () => {
     <header className="h-16 bg-header border-b flex items-center justify-between px-4">
       <div className="flex items-center">
         <SidebarTrigger className="mr-4" />
-        <h1 className="text-header-foreground font-bold">Control Framework Management</h1>
       </div>
       <div className="flex items-center space-x-4">
         <Avatar className="h-8 w-8">

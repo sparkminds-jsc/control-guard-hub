@@ -15,7 +15,6 @@ import {
 export default function GenerateControlFramework() {
   return (
     <div className="flex-1 space-y-6 p-6">
-      <h1 className="text-foreground font-bold">Generate Control Framework</h1>
       
       <Card className="bg-card">
         <CardHeader>
