@@ -13,7 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Trash2, Plus } from "lucide-react";
 import { useParams } from "react-router-dom";
 
 export default function CompanyDetails() {
@@ -23,6 +30,18 @@ export default function CompanyDetails() {
   const [domains, setDomains] = useState(["Technology", "Healthcare", "Finance"]);
   const [activities, setActivities] = useState(["Software Development", "Data Processing", "Customer Support"]);
   const [markets, setMarkets] = useState(["North America", "Europe", "Asia Pacific"]);
+  const [showAddDialog, setShowAddDialog] = useState({ type: "", open: false });
+  const [showLawsDialog, setShowLawsDialog] = useState(false);
+  const [newItemValue, setNewItemValue] = useState("");
+  const [lawsForm, setLawsForm] = useState({
+    domain: "",
+    activity: "",
+    market: "",
+    lawsRegulation: "",
+    detail: "",
+    countryApplied: "",
+    referralSource: ""
+  });
 
   const removeDomain = (index: number) => {
     setDomains(domains.filter((_, i) => i !== index));
@@ -34,6 +53,40 @@ export default function CompanyDetails() {
 
   const removeMarket = (index: number) => {
     setMarkets(markets.filter((_, i) => i !== index));
+  };
+
+  const handleAddItem = (type: string) => {
+    setShowAddDialog({ type, open: true });
+    setNewItemValue("");
+  };
+
+  const saveNewItem = () => {
+    if (newItemValue.trim()) {
+      if (showAddDialog.type === "domain") {
+        setDomains([...domains, newItemValue.trim()]);
+      } else if (showAddDialog.type === "activity") {
+        setActivities([...activities, newItemValue.trim()]);
+      } else if (showAddDialog.type === "market") {
+        setMarkets([...markets, newItemValue.trim()]);
+      }
+    }
+    setShowAddDialog({ type: "", open: false });
+    setNewItemValue("");
+  };
+
+  const saveLawsRegulation = () => {
+    // Here you would normally save the laws regulation data
+    console.log("Saving laws regulation:", lawsForm);
+    setShowLawsDialog(false);
+    setLawsForm({
+      domain: "",
+      activity: "",
+      market: "",
+      lawsRegulation: "",
+      detail: "",
+      countryApplied: "",
+      referralSource: ""
+    });
   };
 
   return (
@@ -82,8 +135,17 @@ export default function CompanyDetails() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <Label className="text-card-foreground font-medium text-base">Domains</Label>
-              <div className="space-y-2 mt-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-card-foreground font-medium text-base">Domains</Label>
+                <Button
+                  size="icon"
+                  onClick={() => handleAddItem("domain")}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="space-y-2">
                 {domains.map((domain, index) => (
                   <div key={index} className="flex items-center space-x-2">
                     <Input
@@ -109,8 +171,17 @@ export default function CompanyDetails() {
             </div>
 
             <div>
-              <Label className="text-card-foreground font-medium text-base">Activities</Label>
-              <div className="space-y-2 mt-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-card-foreground font-medium text-base">Activities</Label>
+                <Button
+                  size="icon"
+                  onClick={() => handleAddItem("activity")}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="space-y-2">
                 {activities.map((activity, index) => (
                   <div key={index} className="flex items-center space-x-2">
                     <Input
@@ -136,8 +207,17 @@ export default function CompanyDetails() {
             </div>
 
             <div>
-              <Label className="text-card-foreground font-medium text-base">Markets</Label>
-              <div className="space-y-2 mt-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-card-foreground font-medium text-base">Markets</Label>
+                <Button
+                  size="icon"
+                  onClick={() => handleAddItem("market")}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="space-y-2">
                 {markets.map((market, index) => (
                   <div key={index} className="flex items-center space-x-2">
                     <Input
@@ -177,94 +257,14 @@ export default function CompanyDetails() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-card-foreground font-bold">Laws and Regulation</CardTitle>
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button 
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={() => setShowLawsDialog(true)}
+              >
                 Add Laws and Regulation
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="domain-select" className="text-card-foreground font-medium">Domain</Label>
-                <Select>
-                  <SelectTrigger className="bg-card border-border">
-                    <SelectValue placeholder="Select domain" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {domains.map((domain, index) => (
-                      <SelectItem key={index} value={domain}>{domain}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="activity-select" className="text-card-foreground font-medium">Activity</Label>
-                <Select>
-                  <SelectTrigger className="bg-card border-border">
-                    <SelectValue placeholder="Select activity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {activities.map((activity, index) => (
-                      <SelectItem key={index} value={activity}>{activity}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="market-select" className="text-card-foreground font-medium">Market</Label>
-                <Select>
-                  <SelectTrigger className="bg-card border-border">
-                    <SelectValue placeholder="Select market" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {markets.map((market, index) => (
-                      <SelectItem key={index} value={market}>{market}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="laws-regulation" className="text-card-foreground font-medium">Laws and Regulation</Label>
-              <Textarea
-                id="laws-regulation"
-                placeholder="Enter laws and regulation"
-                className="bg-card border-border"
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="detail" className="text-card-foreground font-medium">Detail</Label>
-              <Textarea
-                id="detail"
-                placeholder="Enter detail"
-                className="bg-card border-border"
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="country-applied" className="text-card-foreground font-medium">Country Applied</Label>
-                <Input
-                  id="country-applied"
-                  placeholder="Enter country applied"
-                  className="bg-card border-border"
-                />
-              </div>
-              <div>
-                <Label htmlFor="referral-source" className="text-card-foreground font-medium">Referral Source</Label>
-                <Textarea
-                  id="referral-source"
-                  placeholder="Enter referral source"
-                  className="bg-card border-border"
-                  rows={2}
-                />
-              </div>
-            </div>
-          </CardContent>
         </Card>
       )}
 
@@ -314,6 +314,156 @@ export default function CompanyDetails() {
           </CardContent>
         </Card>
       )}
+
+      {/* Add Item Dialog */}
+      <Dialog open={showAddDialog.open} onOpenChange={(open) => setShowAddDialog({ ...showAddDialog, open })}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">
+              Add {showAddDialog.type === "domain" ? "Domain" : showAddDialog.type === "activity" ? "Activity" : "Market"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-card-foreground font-medium">
+                {showAddDialog.type === "domain" ? "Domain" : showAddDialog.type === "activity" ? "Activity" : "Market"}
+              </Label>
+              <Input
+                value={newItemValue}
+                onChange={(e) => setNewItemValue(e.target.value)}
+                placeholder={`Enter ${showAddDialog.type}`}
+                className="bg-card border-border"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAddDialog({ type: "", open: false })}
+              className="bg-card border-border text-card-foreground hover:bg-accent"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={saveNewItem}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Laws and Regulation Dialog */}
+      <Dialog open={showLawsDialog} onOpenChange={setShowLawsDialog}>
+        <DialogContent className="bg-card border-border max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">Add Laws and Regulation</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Domain</Label>
+                <Select value={lawsForm.domain} onValueChange={(value) => setLawsForm({ ...lawsForm, domain: value })}>
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select domain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {domains.map((domain, index) => (
+                      <SelectItem key={index} value={domain}>{domain}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Activity</Label>
+                <Select value={lawsForm.activity} onValueChange={(value) => setLawsForm({ ...lawsForm, activity: value })}>
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select activity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activities.map((activity, index) => (
+                      <SelectItem key={index} value={activity}>{activity}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Market</Label>
+                <Select value={lawsForm.market} onValueChange={(value) => setLawsForm({ ...lawsForm, market: value })}>
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select market" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {markets.map((market, index) => (
+                      <SelectItem key={index} value={market}>{market}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-card-foreground font-medium">Laws and Regulation</Label>
+              <Textarea
+                value={lawsForm.lawsRegulation}
+                onChange={(e) => setLawsForm({ ...lawsForm, lawsRegulation: e.target.value })}
+                placeholder="Enter laws and regulation"
+                className="bg-card border-border"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label className="text-card-foreground font-medium">Detail</Label>
+              <Textarea
+                value={lawsForm.detail}
+                onChange={(e) => setLawsForm({ ...lawsForm, detail: e.target.value })}
+                placeholder="Enter detail"
+                className="bg-card border-border"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Country Applied</Label>
+                <Input
+                  value={lawsForm.countryApplied}
+                  onChange={(e) => setLawsForm({ ...lawsForm, countryApplied: e.target.value })}
+                  placeholder="Enter country applied"
+                  className="bg-card border-border"
+                />
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Referral Source</Label>
+                <Textarea
+                  value={lawsForm.referralSource}
+                  onChange={(e) => setLawsForm({ ...lawsForm, referralSource: e.target.value })}
+                  placeholder="Enter referral source"
+                  className="bg-card border-border"
+                  rows={2}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowLawsDialog(false)}
+              className="bg-card border-border text-card-foreground hover:bg-accent"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={saveLawsRegulation}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
