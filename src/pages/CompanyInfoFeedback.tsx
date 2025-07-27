@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 export default function CompanyInfoFeedback() {
   return (
     <div className="flex-1 space-y-6 p-6">
-      <h1 className="text-foreground font-bold">Company Info Feedback</h1>
       
       <Card className="bg-card">
         <CardHeader>

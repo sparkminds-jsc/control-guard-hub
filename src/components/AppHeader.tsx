@@ -5,9 +5,9 @@ export const AppHeader = () => {
   return (
     <header className="h-16 bg-header border-b flex items-center justify-between px-4">
       <div className="flex items-center">
-        <SidebarTrigger className="mr-4" />
       </div>
       <div className="flex items-center space-x-4">
+        <SidebarTrigger className="mr-2" />
         <Avatar className="h-8 w-8">
           <AvatarImage src="/placeholder.svg" alt="User Avatar" />
           <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
