@@ -255,15 +255,22 @@ export default function CompanyDetails() {
       {showLawsRegulations && (
         <Card className="bg-card">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-card-foreground font-bold">Laws and Regulation</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-card-foreground font-bold">Laws and Regulation</CardTitle>
+            <div className="flex space-x-2">
               <Button 
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={() => setShowLawsDialog(true)}
               >
                 Add Laws and Regulation
               </Button>
+              <Button 
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Generate Control Framework
+              </Button>
             </div>
+          </div>
           </CardHeader>
         </Card>
       )}
