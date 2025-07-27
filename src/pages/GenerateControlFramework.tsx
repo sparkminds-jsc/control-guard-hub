@@ -10,13 +10,50 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 export default function GenerateControlFramework() {
   const navigate = useNavigate();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    companyName: "",
+    websiteUrl: "",
+    country: "",
+    dunsNumber: ""
+  });
 
   const handleDetailClick = (companyId: string) => {
     navigate(`/company-details/${companyId}`);
+  };
+
+  const handleSave = () => {
+    // Handle save logic here
+    setIsDialogOpen(false);
+    setFormData({
+      companyName: "",
+      websiteUrl: "",
+      country: "",
+      dunsNumber: ""
+    });
+  };
+
+  const handleCancel = () => {
+    setIsDialogOpen(false);
+    setFormData({
+      companyName: "",
+      websiteUrl: "",
+      country: "",
+      dunsNumber: ""
+    });
   };
 
   return (
@@ -33,50 +70,70 @@ export default function GenerateControlFramework() {
                 className="bg-card border-border w-64"
               />
             </div>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Add Company
-            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  Add Company
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Add Company</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="company-name" className="text-card-foreground font-medium">Company Name</Label>
+                    <Input
+                      id="company-name"
+                      placeholder="Enter company name"
+                      value={formData.companyName}
+                      onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+                      className="bg-card border-border"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="website-url" className="text-card-foreground font-medium">Website URL</Label>
+                    <Input
+                      id="website-url"
+                      placeholder="Enter website URL"
+                      value={formData.websiteUrl}
+                      onChange={(e) => setFormData({...formData, websiteUrl: e.target.value})}
+                      className="bg-card border-border"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="country" className="text-card-foreground font-medium">Country</Label>
+                    <Input
+                      id="country"
+                      placeholder="Enter country"
+                      value={formData.country}
+                      onChange={(e) => setFormData({...formData, country: e.target.value})}
+                      className="bg-card border-border"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="duns-number" className="text-card-foreground font-medium">DUNS Number</Label>
+                    <Input
+                      id="duns-number"
+                      placeholder="Enter DUNS number"
+                      value={formData.dunsNumber}
+                      onChange={(e) => setFormData({...formData, dunsNumber: e.target.value})}
+                      className="bg-card border-border"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={handleCancel}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSave}>
+                    Save
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="company-name" className="text-card-foreground font-medium">Company Name</Label>
-              <Input
-                id="company-name"
-                placeholder="Enter company name"
-                className="bg-card border-border"
-              />
-            </div>
-            <div>
-              <Label htmlFor="website-url" className="text-card-foreground font-medium">Website URL</Label>
-              <Input
-                id="website-url"
-                placeholder="Enter website URL"
-                className="bg-card border-border"
-              />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="country" className="text-card-foreground font-medium">Country</Label>
-              <Input
-                id="country"
-                placeholder="Enter country"
-                className="bg-card border-border"
-              />
-            </div>
-            <div>
-              <Label htmlFor="duns-number" className="text-card-foreground font-medium">DUNS Number</Label>
-              <Input
-                id="duns-number"
-                placeholder="Enter DUNS number"
-                className="bg-card border-border"
-              />
-            </div>
-          </div>
-        </CardContent>
       </Card>
 
       <Card className="bg-card">
