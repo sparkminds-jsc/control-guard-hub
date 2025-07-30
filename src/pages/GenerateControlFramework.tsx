@@ -27,7 +27,6 @@ export default function GenerateControlFramework() {
   const [formData, setFormData] = useState({
     companyName: "",
     websiteUrl: "",
-    country: "",
     dunsNumber: ""
   });
 
@@ -35,15 +34,38 @@ export default function GenerateControlFramework() {
     navigate(`/company-details/${companyId}`);
   };
 
-  const handleSave = () => {
-    // Handle save logic here
-    setIsDialogOpen(false);
-    setFormData({
-      companyName: "",
-      websiteUrl: "",
-      country: "",
-      dunsNumber: ""
-    });
+  const handleSave = async () => {
+    try {
+      // Call API to external service
+      const response = await fetch(`https://n8n.sparkminds.net/webhook-test/6812a814-9d51-43e1-aff8-46bd1b01d4de?websiteUrl=${encodeURIComponent(formData.websiteUrl)}&companyName=${encodeURIComponent(formData.companyName)}`);
+      const apiData = await response.json();
+      
+      // Save to companies table with API response data
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: company, error } = await supabase
+        .from('companies')
+        .insert({
+          name: formData.companyName,
+          website_url: formData.websiteUrl,
+          duns_number: formData.dunsNumber || null,
+          // Store additional data from API response
+          ...apiData
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      console.log('Company saved:', company);
+      setIsDialogOpen(false);
+      setFormData({
+        companyName: "",
+        websiteUrl: "",
+        dunsNumber: ""
+      });
+    } catch (error) {
+      console.error('Error saving company:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -51,7 +73,6 @@ export default function GenerateControlFramework() {
     setFormData({
       companyName: "",
       websiteUrl: "",
-      country: "",
       dunsNumber: ""
     });
   };
@@ -102,17 +123,7 @@ export default function GenerateControlFramework() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="country" className="text-card-foreground font-medium">Country</Label>
-                    <Input
-                      id="country"
-                      placeholder="Enter country"
-                      value={formData.country}
-                      onChange={(e) => setFormData({...formData, country: e.target.value})}
-                      className="bg-card border-border"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="duns-number" className="text-card-foreground font-medium">DUNS Number</Label>
+                    <Label htmlFor="duns-number" className="text-card-foreground font-medium">DUNS Number (Optional)</Label>
                     <Input
                       id="duns-number"
                       placeholder="Enter DUNS number"
@@ -144,7 +155,6 @@ export default function GenerateControlFramework() {
                 <TableHead className="text-card-foreground font-bold">No</TableHead>
                 <TableHead className="text-card-foreground font-bold">Company Name</TableHead>
                 <TableHead className="text-card-foreground font-bold">Website URL</TableHead>
-                <TableHead className="text-card-foreground font-bold">Country</TableHead>
                 <TableHead className="text-card-foreground font-bold">DUNS Number</TableHead>
                 <TableHead className="text-card-foreground font-bold">Created Date</TableHead>
                 <TableHead className="text-card-foreground font-bold">Action</TableHead>
@@ -155,7 +165,6 @@ export default function GenerateControlFramework() {
                 <TableCell className="text-card-foreground">1</TableCell>
                 <TableCell className="text-card-foreground">Company ABC</TableCell>
                 <TableCell className="text-card-foreground">www.abc.com</TableCell>
-                <TableCell className="text-card-foreground">USA</TableCell>
                 <TableCell className="text-card-foreground">123456789</TableCell>
                 <TableCell className="text-card-foreground">2024-01-15</TableCell>
                 <TableCell>
@@ -180,7 +189,6 @@ export default function GenerateControlFramework() {
                 <TableCell className="text-card-foreground">2</TableCell>
                 <TableCell className="text-card-foreground">Company XYZ</TableCell>
                 <TableCell className="text-card-foreground">www.xyz.com</TableCell>
-                <TableCell className="text-card-foreground">UK</TableCell>
                 <TableCell className="text-card-foreground">987654321</TableCell>
                 <TableCell className="text-card-foreground">2024-01-10</TableCell>
                 <TableCell>

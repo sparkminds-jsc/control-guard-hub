@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,9 +28,10 @@ export default function CompanyDetails() {
   const { id } = useParams();
   const [showDetails, setShowDetails] = useState(false);
   const [showLawsRegulations, setShowLawsRegulations] = useState(false);
-  const [domains, setDomains] = useState(["Technology", "Healthcare", "Finance"]);
-  const [activities, setActivities] = useState(["Software Development", "Data Processing", "Customer Support"]);
-  const [markets, setMarkets] = useState(["North America", "Europe", "Asia Pacific"]);
+  const [company, setCompany] = useState<any>(null);
+  const [domains, setDomains] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [markets, setMarkets] = useState<any[]>([]);
   const [showAddDialog, setShowAddDialog] = useState({ type: "", open: false });
   const [showLawsDialog, setShowLawsDialog] = useState(false);
   const [newItemValue, setNewItemValue] = useState("");
@@ -43,16 +45,97 @@ export default function CompanyDetails() {
     referralSource: ""
   });
 
-  const removeDomain = (index: number) => {
-    setDomains(domains.filter((_, i) => i !== index));
+  // Load company data and related domains, activities, markets
+  useEffect(() => {
+    if (id) {
+      loadCompanyData();
+    }
+  }, [id]);
+
+  const loadCompanyData = async () => {
+    try {
+      // Load company basic info
+      const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (companyError) throw companyError;
+      setCompany(companyData);
+
+      // Load domains
+      const { data: domainsData, error: domainsError } = await supabase
+        .from('domains')
+        .select('*')
+        .eq('company_id', id);
+      
+      if (domainsError) throw domainsError;
+      setDomains(domainsData || []);
+
+      // Load activities
+      const { data: activitiesData, error: activitiesError } = await supabase
+        .from('activities')
+        .select('*')
+        .eq('company_id', id);
+      
+      if (activitiesError) throw activitiesError;
+      setActivities(activitiesData || []);
+
+      // Load markets
+      const { data: marketsData, error: marketsError } = await supabase
+        .from('markets')
+        .select('*')
+        .eq('company_id', id);
+      
+      if (marketsError) throw marketsError;
+      setMarkets(marketsData || []);
+
+    } catch (error) {
+      console.error('Error loading company data:', error);
+    }
   };
 
-  const removeActivity = (index: number) => {
-    setActivities(activities.filter((_, i) => i !== index));
+  const removeDomain = async (domainId: string) => {
+    try {
+      const { error } = await supabase
+        .from('domains')
+        .delete()
+        .eq('id', domainId);
+      
+      if (error) throw error;
+      setDomains(domains.filter(d => d.id !== domainId));
+    } catch (error) {
+      console.error('Error removing domain:', error);
+    }
   };
 
-  const removeMarket = (index: number) => {
-    setMarkets(markets.filter((_, i) => i !== index));
+  const removeActivity = async (activityId: string) => {
+    try {
+      const { error } = await supabase
+        .from('activities')
+        .delete()
+        .eq('id', activityId);
+      
+      if (error) throw error;
+      setActivities(activities.filter(a => a.id !== activityId));
+    } catch (error) {
+      console.error('Error removing activity:', error);
+    }
+  };
+
+  const removeMarket = async (marketId: string) => {
+    try {
+      const { error } = await supabase
+        .from('markets')
+        .delete()
+        .eq('id', marketId);
+      
+      if (error) throw error;
+      setMarkets(markets.filter(m => m.id !== marketId));
+    } catch (error) {
+      console.error('Error removing market:', error);
+    }
   };
 
   const handleAddItem = (type: string) => {
@@ -60,14 +143,48 @@ export default function CompanyDetails() {
     setNewItemValue("");
   };
 
-  const saveNewItem = () => {
-    if (newItemValue.trim()) {
-      if (showAddDialog.type === "domain") {
-        setDomains([...domains, newItemValue.trim()]);
-      } else if (showAddDialog.type === "activity") {
-        setActivities([...activities, newItemValue.trim()]);
-      } else if (showAddDialog.type === "market") {
-        setMarkets([...markets, newItemValue.trim()]);
+  const saveNewItem = async () => {
+    if (newItemValue.trim() && id) {
+      try {
+        if (showAddDialog.type === "domain") {
+          const { data, error } = await supabase
+            .from('domains')
+            .insert({
+              company_id: id,
+              name: newItemValue.trim()
+            })
+            .select()
+            .single();
+          
+          if (error) throw error;
+          setDomains([...domains, data]);
+        } else if (showAddDialog.type === "activity") {
+          const { data, error } = await supabase
+            .from('activities')
+            .insert({
+              company_id: id,
+              name: newItemValue.trim()
+            })
+            .select()
+            .single();
+          
+          if (error) throw error;
+          setActivities([...activities, data]);
+        } else if (showAddDialog.type === "market") {
+          const { data, error } = await supabase
+            .from('markets')
+            .insert({
+              company_id: id,
+              name: newItemValue.trim()
+            })
+            .select()
+            .single();
+          
+          if (error) throw error;
+          setMarkets([...markets, data]);
+        }
+      } catch (error) {
+        console.error('Error saving new item:', error);
       }
     }
     setShowAddDialog({ type: "", open: false });
@@ -100,22 +217,22 @@ export default function CompanyDetails() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="text-card-foreground font-medium">Company Name</Label>
-              <div className="text-card-foreground mt-1">Company ABC</div>
+              <div className="text-card-foreground mt-1">{company?.name || 'Loading...'}</div>
             </div>
             <div>
               <Label className="text-card-foreground font-medium">Website URL</Label>
-              <div className="text-card-foreground mt-1">www.abc.com</div>
+              <div className="text-card-foreground mt-1">{company?.website_url || 'N/A'}</div>
             </div>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="text-card-foreground font-medium">Country</Label>
-              <div className="text-card-foreground mt-1">USA</div>
+              <div className="text-card-foreground mt-1">{company?.country || 'N/A'}</div>
             </div>
             <div>
               <Label className="text-card-foreground font-medium">DUNS Number</Label>
-              <div className="text-card-foreground mt-1">123456789</div>
+              <div className="text-card-foreground mt-1">{company?.duns_number || 'N/A'}</div>
             </div>
           </div>
 
@@ -146,14 +263,25 @@ export default function CompanyDetails() {
                 </Button>
               </div>
               <div className="space-y-2">
-                {domains.map((domain, index) => (
-                  <div key={index} className="flex items-center space-x-2">
+                {domains.map((domain) => (
+                  <div key={domain.id} className="flex items-center space-x-2">
                     <Input
-                      value={domain}
-                      onChange={(e) => {
-                        const newDomains = [...domains];
-                        newDomains[index] = e.target.value;
-                        setDomains(newDomains);
+                      value={domain.name}
+                      onChange={async (e) => {
+                        try {
+                          const { error } = await supabase
+                            .from('domains')
+                            .update({ name: e.target.value })
+                            .eq('id', domain.id);
+                          
+                          if (error) throw error;
+                          
+                          setDomains(domains.map(d => 
+                            d.id === domain.id ? { ...d, name: e.target.value } : d
+                          ));
+                        } catch (error) {
+                          console.error('Error updating domain:', error);
+                        }
                       }}
                       className="bg-card border-border"
                     />
@@ -161,7 +289,7 @@ export default function CompanyDetails() {
                       size="icon"
                       variant="destructive"
                       className="bg-destructive text-destructive-foreground h-8 w-8"
-                      onClick={() => removeDomain(index)}
+                      onClick={() => removeDomain(domain.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -182,14 +310,25 @@ export default function CompanyDetails() {
                 </Button>
               </div>
               <div className="space-y-2">
-                {activities.map((activity, index) => (
-                  <div key={index} className="flex items-center space-x-2">
+                {activities.map((activity) => (
+                  <div key={activity.id} className="flex items-center space-x-2">
                     <Input
-                      value={activity}
-                      onChange={(e) => {
-                        const newActivities = [...activities];
-                        newActivities[index] = e.target.value;
-                        setActivities(newActivities);
+                      value={activity.name}
+                      onChange={async (e) => {
+                        try {
+                          const { error } = await supabase
+                            .from('activities')
+                            .update({ name: e.target.value })
+                            .eq('id', activity.id);
+                          
+                          if (error) throw error;
+                          
+                          setActivities(activities.map(a => 
+                            a.id === activity.id ? { ...a, name: e.target.value } : a
+                          ));
+                        } catch (error) {
+                          console.error('Error updating activity:', error);
+                        }
                       }}
                       className="bg-card border-border"
                     />
@@ -197,7 +336,7 @@ export default function CompanyDetails() {
                       size="icon"
                       variant="destructive"
                       className="bg-destructive text-destructive-foreground h-8 w-8"
-                      onClick={() => removeActivity(index)}
+                      onClick={() => removeActivity(activity.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -218,14 +357,25 @@ export default function CompanyDetails() {
                 </Button>
               </div>
               <div className="space-y-2">
-                {markets.map((market, index) => (
-                  <div key={index} className="flex items-center space-x-2">
+                {markets.map((market) => (
+                  <div key={market.id} className="flex items-center space-x-2">
                     <Input
-                      value={market}
-                      onChange={(e) => {
-                        const newMarkets = [...markets];
-                        newMarkets[index] = e.target.value;
-                        setMarkets(newMarkets);
+                      value={market.name}
+                      onChange={async (e) => {
+                        try {
+                          const { error } = await supabase
+                            .from('markets')
+                            .update({ name: e.target.value })
+                            .eq('id', market.id);
+                          
+                          if (error) throw error;
+                          
+                          setMarkets(markets.map(m => 
+                            m.id === market.id ? { ...m, name: e.target.value } : m
+                          ));
+                        } catch (error) {
+                          console.error('Error updating market:', error);
+                        }
                       }}
                       className="bg-card border-border"
                     />
@@ -233,7 +383,7 @@ export default function CompanyDetails() {
                       size="icon"
                       variant="destructive"
                       className="bg-destructive text-destructive-foreground h-8 w-8"
-                      onClick={() => removeMarket(index)}
+                      onClick={() => removeMarket(market.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -376,8 +526,8 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select domain" />
                   </SelectTrigger>
                   <SelectContent>
-                    {domains.map((domain, index) => (
-                      <SelectItem key={index} value={domain}>{domain}</SelectItem>
+                    {domains.map((domain) => (
+                      <SelectItem key={domain.id} value={domain.name}>{domain.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -389,8 +539,8 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select activity" />
                   </SelectTrigger>
                   <SelectContent>
-                    {activities.map((activity, index) => (
-                      <SelectItem key={index} value={activity}>{activity}</SelectItem>
+                    {activities.map((activity) => (
+                      <SelectItem key={activity.id} value={activity.name}>{activity.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -402,8 +552,8 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select market" />
                   </SelectTrigger>
                   <SelectContent>
-                    {markets.map((market, index) => (
-                      <SelectItem key={index} value={market}>{market}</SelectItem>
+                    {markets.map((market) => (
+                      <SelectItem key={market.id} value={market.name}>{market.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
