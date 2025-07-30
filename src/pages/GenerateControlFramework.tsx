@@ -19,16 +19,56 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function GenerateControlFramework() {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [filteredCompanies, setFilteredCompanies] = useState<any[]>([]);
+  const [filterValue, setFilterValue] = useState("");
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     companyName: "",
     websiteUrl: "",
     dunsNumber: ""
   });
+
+  // Load companies on component mount
+  useEffect(() => {
+    loadCompanies();
+  }, []);
+
+  // Filter companies when filter value changes
+  useEffect(() => {
+    if (filterValue.trim() === "") {
+      setFilteredCompanies(companies);
+    } else {
+      setFilteredCompanies(
+        companies.filter(company => 
+          company.name.toLowerCase().includes(filterValue.toLowerCase())
+        )
+      );
+    }
+  }, [filterValue, companies]);
+
+  const loadCompanies = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCompanies(data || []);
+    } catch (error) {
+      console.error('Error loading companies:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDetailClick = (companyId: string) => {
     navigate(`/company-details/${companyId}`);
@@ -36,27 +76,71 @@ export default function GenerateControlFramework() {
 
   const handleSave = async () => {
     try {
+      setLoading(true);
+      
       // Call API to external service
       const response = await fetch(`https://n8n.sparkminds.net/webhook-test/6812a814-9d51-43e1-aff8-46bd1b01d4de?websiteUrl=${encodeURIComponent(formData.websiteUrl)}&companyName=${encodeURIComponent(formData.companyName)}`);
       const apiData = await response.json();
       
+      console.log('API Response:', apiData);
+      
       // Save to companies table with API response data
-      const { supabase } = await import("@/integrations/supabase/client");
+      const companyData = {
+        name: formData.companyName,
+        website_url: formData.websiteUrl,
+        duns_number: formData.dunsNumber || null,
+        // Store additional data from API response if available
+        country: apiData.country || null,
+        // Add other fields from API response as needed
+        ...apiData
+      };
+
       const { data: company, error } = await supabase
         .from('companies')
-        .insert({
-          name: formData.companyName,
-          website_url: formData.websiteUrl,
-          duns_number: formData.dunsNumber || null,
-          // Store additional data from API response
-          ...apiData
-        })
+        .insert(companyData)
         .select()
         .single();
 
       if (error) throw error;
 
       console.log('Company saved:', company);
+      
+      // If API returns domains, activities, markets data, save them to respective tables
+      if (company && apiData) {
+        // Save domains if provided
+        if (apiData.domains && Array.isArray(apiData.domains)) {
+          const domainsToInsert = apiData.domains.map((domain: any) => ({
+            company_id: company.id,
+            name: typeof domain === 'string' ? domain : domain.name
+          }));
+          
+          await supabase.from('domains').insert(domainsToInsert);
+        }
+
+        // Save activities if provided
+        if (apiData.activities && Array.isArray(apiData.activities)) {
+          const activitiesToInsert = apiData.activities.map((activity: any) => ({
+            company_id: company.id,
+            name: typeof activity === 'string' ? activity : activity.name
+          }));
+          
+          await supabase.from('activities').insert(activitiesToInsert);
+        }
+
+        // Save markets if provided
+        if (apiData.markets && Array.isArray(apiData.markets)) {
+          const marketsToInsert = apiData.markets.map((market: any) => ({
+            company_id: company.id,
+            name: typeof market === 'string' ? market : market.name
+          }));
+          
+          await supabase.from('markets').insert(marketsToInsert);
+        }
+      }
+
+      // Reload companies list to show the new company
+      await loadCompanies();
+      
       setIsDialogOpen(false);
       setFormData({
         companyName: "",
@@ -65,6 +149,9 @@ export default function GenerateControlFramework() {
       });
     } catch (error) {
       console.error('Error saving company:', error);
+      // You might want to show a toast notification here
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,12 +176,17 @@ export default function GenerateControlFramework() {
                 id="filter-company"
                 placeholder="Company Name"
                 className="bg-card border-border w-64"
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
               />
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Add Company
+                <Button 
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  disabled={loading}
+                >
+                  {loading ? "Processing..." : "Add Company"}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
@@ -137,8 +229,11 @@ export default function GenerateControlFramework() {
                   <Button variant="outline" onClick={handleCancel}>
                     Cancel
                   </Button>
-                  <Button onClick={handleSave}>
-                    Save
+                  <Button 
+                    onClick={handleSave}
+                    disabled={loading || !formData.companyName || !formData.websiteUrl}
+                  >
+                    {loading ? "Saving..." : "Save"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -161,54 +256,48 @@ export default function GenerateControlFramework() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell className="text-card-foreground">1</TableCell>
-                <TableCell className="text-card-foreground">Company ABC</TableCell>
-                <TableCell className="text-card-foreground">www.abc.com</TableCell>
-                <TableCell className="text-card-foreground">123456789</TableCell>
-                <TableCell className="text-card-foreground">2024-01-15</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button 
-                      size="sm" 
-                      className="bg-primary text-primary-foreground hover:bg-primary/90"
-                      onClick={() => handleDetailClick("1")}
-                    >
-                      Detail
-                    </Button>
-                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="destructive" className="bg-destructive text-destructive-foreground">
-                      Delete
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="text-card-foreground">2</TableCell>
-                <TableCell className="text-card-foreground">Company XYZ</TableCell>
-                <TableCell className="text-card-foreground">www.xyz.com</TableCell>
-                <TableCell className="text-card-foreground">987654321</TableCell>
-                <TableCell className="text-card-foreground">2024-01-10</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button 
-                      size="sm" 
-                      className="bg-primary text-primary-foreground hover:bg-primary/90"
-                      onClick={() => handleDetailClick("2")}
-                    >
-                      Detail
-                    </Button>
-                    <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="destructive" className="bg-destructive text-destructive-foreground">
-                      Delete
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-card-foreground">
+                    Loading companies...
+                  </TableCell>
+                </TableRow>
+              ) : filteredCompanies.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-card-foreground">
+                    {filterValue ? "No companies found matching filter" : "No companies added yet"}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredCompanies.map((company, index) => (
+                  <TableRow key={company.id}>
+                    <TableCell className="text-card-foreground">{index + 1}</TableCell>
+                    <TableCell className="text-card-foreground">{company.name}</TableCell>
+                    <TableCell className="text-card-foreground">{company.website_url || 'N/A'}</TableCell>
+                    <TableCell className="text-card-foreground">{company.duns_number || 'N/A'}</TableCell>
+                    <TableCell className="text-card-foreground">
+                      {new Date(company.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          onClick={() => handleDetailClick(company.id)}
+                        >
+                          Detail
+                        </Button>
+                        <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                          Edit
+                        </Button>
+                        <Button size="sm" variant="destructive" className="bg-destructive text-destructive-foreground">
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
