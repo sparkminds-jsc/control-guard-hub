@@ -1658,6 +1658,8 @@ export default function CompanyDetails() {
                 </div>
               </div>
             )}
+              </div>
+            )}
 
             {/* Control Framework Buttons */}
             <div className="flex justify-end space-x-2 pt-4 border-t border-border">
