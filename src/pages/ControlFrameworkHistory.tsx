@@ -10,6 +10,7 @@ import { Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight, Plus } from "luci
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import ControlFrameworkModal from "@/components/ControlFrameworkModal";
 
 interface Domain {
   name: string;
@@ -83,6 +84,10 @@ export default function ControlFrameworkHistory() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingFramework, setEditingFramework] = useState<any>(null);
   
   useEffect(() => {
     loadData();
@@ -243,11 +248,12 @@ export default function ControlFrameworkHistory() {
             Showing {filteredFrameworks.length} of {controlFrameworks.length} control frameworks
           </p>
         </div>
-        <Button asChild>
-          <Link to="/generate-control-framework">
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Control Framework
-          </Link>
+        <Button onClick={() => {
+          setEditingFramework(null);
+          setModalOpen(true);
+        }}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add New Control Framework
         </Button>
       </div>
 
@@ -404,10 +410,35 @@ export default function ControlFrameworkHistory() {
                             <Eye className="h-4 w-4" />
                           </Link>
                         </Button>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/control-framework/${framework.id}?edit=true`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={async () => {
+                            // Fetch the full framework data with IDs
+                            const { data: fullFramework } = await supabase
+                              .from('control_framework')
+                              .select('*')
+                              .eq('id', framework.id)
+                              .single();
+                            
+                            if (fullFramework) {
+                              setEditingFramework({
+                                id: fullFramework.id,
+                                context: fullFramework.context,
+                                description: fullFramework.description,
+                                countryapplied: fullFramework.countryapplied,
+                                referralsource: fullFramework.referralsource,
+                                riskmanagement: fullFramework.riskmanagement,
+                                id_domain: fullFramework.id_domain,
+                                id_activities: fullFramework.id_activities,
+                                id_markets: fullFramework.id_markets,
+                                id_laws_and_regulations: fullFramework.id_laws_and_regulations
+                              });
+                              setModalOpen(true);
+                            }
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -504,6 +535,14 @@ export default function ControlFrameworkHistory() {
           </div>
         </div>
       )}
+
+      {/* Modal */}
+      <ControlFrameworkModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        framework={editingFramework}
+        onSuccess={loadData}
+      />
     </div>
   );
 }
