@@ -31,11 +31,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Plus, Edit, Eye, Search, Filter } from "lucide-react";
+import { Trash2, Plus, Edit, Eye, Search, Filter, Loader2 } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CompanyDetails() {
   const { id } = useParams();
@@ -86,6 +87,20 @@ export default function CompanyDetails() {
     activity_id: "",
     market_id: ""
   });
+  
+  // Loading states for detail sections
+  const [detailLoading, setDetailLoading] = useState({
+    domains: false,
+    activities: false,
+    markets: false
+  });
+  
+  // Edit states for detail sections
+  const [editingItem, setEditingItem] = useState<{
+    type: string;
+    id: string;
+    value: string;
+  } | null>(null);
 
   // Setup realtime subscription for laws and regulations
   const setupRealtimeSubscription = useCallback(() => {
@@ -232,6 +247,11 @@ export default function CompanyDetails() {
 
   const confirmDelete = async () => {
     try {
+      setDetailLoading(prev => ({ 
+        ...prev, 
+        [deleteDialog.type + 's']: true 
+      }));
+      
       let error;
       
       if (deleteDialog.type === 'domain') {
@@ -282,6 +302,11 @@ export default function CompanyDetails() {
         variant: "destructive",
         className: "fixed top-4 right-4 w-auto"
       });
+    } finally {
+      setDetailLoading(prev => ({ 
+        ...prev, 
+        [deleteDialog.type + 's']: false 
+      }));
     }
     
     setDeleteDialog({ isOpen: false, type: "", id: "", name: "" });
@@ -295,6 +320,11 @@ export default function CompanyDetails() {
   const saveNewItem = async () => {
     if (newItemValue.trim() && id) {
       try {
+        setDetailLoading(prev => ({ 
+          ...prev, 
+          [showAddDialog.type + 's']: true 
+        }));
+        
         if (showAddDialog.type === "domain") {
           const { data, error } = await supabase
             .from('domains')
@@ -360,10 +390,92 @@ export default function CompanyDetails() {
           variant: "destructive",
           className: "fixed top-4 right-4 w-auto"
         });
+      } finally {
+        setDetailLoading(prev => ({ 
+          ...prev, 
+          [showAddDialog.type + 's']: false 
+        }));
       }
     }
     setShowAddDialog({ type: "", open: false });
     setNewItemValue("");
+  };
+
+  // Handle editing detail items
+  const handleEditItem = (type: string, id: string, currentValue: string) => {
+    setEditingItem({ type, id, value: currentValue });
+  };
+
+  const saveEditItem = async () => {
+    if (!editingItem || !editingItem.value.trim()) return;
+    
+    try {
+      setDetailLoading(prev => ({ 
+        ...prev, 
+        [editingItem.type + 's']: true 
+      }));
+
+      let error;
+      
+      if (editingItem.type === 'domain') {
+        ({ error } = await supabase
+          .from('domains')
+          .update({ name: editingItem.value.trim() })
+          .eq('id', editingItem.id));
+      } else if (editingItem.type === 'activity') {
+        ({ error } = await supabase
+          .from('activities')
+          .update({ name: editingItem.value.trim() })
+          .eq('id', editingItem.id));
+      } else if (editingItem.type === 'market') {
+        ({ error } = await supabase
+          .from('markets')
+          .update({ name: editingItem.value.trim() })
+          .eq('id', editingItem.id));
+      }
+      
+      if (error) throw error;
+      
+      // Update local state
+      if (editingItem.type === 'domain') {
+        setDomains(domains.map(d => 
+          d.id === editingItem.id ? { ...d, name: editingItem.value.trim() } : d
+        ));
+      } else if (editingItem.type === 'activity') {
+        setActivities(activities.map(a => 
+          a.id === editingItem.id ? { ...a, name: editingItem.value.trim() } : a
+        ));
+      } else if (editingItem.type === 'market') {
+        setMarkets(markets.map(m => 
+          m.id === editingItem.id ? { ...m, name: editingItem.value.trim() } : m
+        ));
+      }
+      
+      toast({
+        title: "Updated Successfully",
+        description: `${editingItem.type} has been updated.`,
+        className: "fixed top-4 right-4 w-auto"
+      });
+      
+      setEditingItem(null);
+    } catch (error) {
+      console.error('Error updating item:', error);
+      toast({
+        title: "Update Failed",
+        description: "An error occurred while updating. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    } finally {
+      setDetailLoading(prev => ({ 
+        ...prev, 
+        [editingItem.type + 's']: false 
+      }));
+    }
+  };
+
+  const cancelEditItem = () => {
+    setEditingItem(null);
   };
 
   const handleEditDuns = () => {
@@ -719,43 +831,77 @@ export default function CompanyDetails() {
                   size="icon"
                   onClick={() => handleAddItem("domain")}
                   className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                  disabled={detailLoading.domains}
                 >
-                  <Plus className="h-4 w-4" />
+                  {detailLoading.domains ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                 </Button>
               </div>
               <div className="space-y-2">
-                {domains.map((domain) => (
-                  <div key={domain.id} className="flex items-center space-x-2">
-                    <Input
-                      value={domain.name}
-                      onChange={async (e) => {
-                        try {
-                          const { error } = await supabase
-                            .from('domains')
-                            .update({ name: e.target.value })
-                            .eq('id', domain.id);
-                          
-                          if (error) throw error;
-                          
-                          setDomains(domains.map(d => 
-                            d.id === domain.id ? { ...d, name: e.target.value } : d
-                          ));
-                        } catch (error) {
-                          console.error('Error updating domain:', error);
-                        }
-                      }}
-                      className="bg-card border-border"
-                    />
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      className="bg-destructive text-destructive-foreground h-8 w-8"
-                      onClick={() => handleDeleteClick('domain', domain.id, domain.name)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                {detailLoading.domains ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
-                ))}
+                ) : (
+                  domains.map((domain) => (
+                    <div key={domain.id} className="flex items-center space-x-2">
+                      {editingItem?.type === 'domain' && editingItem?.id === domain.id ? (
+                        <>
+                          <Input
+                            value={editingItem.value}
+                            onChange={(e) => setEditingItem({ ...editingItem, value: e.target.value })}
+                            className="bg-card border-border"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditItem();
+                              if (e.key === 'Escape') cancelEditItem();
+                            }}
+                            autoFocus
+                          />
+                          <Button
+                            size="icon"
+                            onClick={saveEditItem}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={cancelEditItem}
+                            className="bg-card border-border text-card-foreground hover:bg-accent h-8 w-8"
+                          >
+                            ✕
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Input
+                            value={domain.name}
+                            readOnly
+                            className="bg-card border-border cursor-pointer"
+                            onClick={() => handleEditItem('domain', domain.id, domain.name)}
+                          />
+                          <Button
+                            size="icon"
+                            onClick={() => handleEditItem('domain', domain.id, domain.name)}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="bg-destructive text-destructive-foreground h-8 w-8"
+                            onClick={() => handleDeleteClick('domain', domain.id, domain.name)}
+                            disabled={domains.length === 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -766,43 +912,77 @@ export default function CompanyDetails() {
                   size="icon"
                   onClick={() => handleAddItem("activity")}
                   className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                  disabled={detailLoading.activities}
                 >
-                  <Plus className="h-4 w-4" />
+                  {detailLoading.activities ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                 </Button>
               </div>
               <div className="space-y-2">
-                {activities.map((activity) => (
-                  <div key={activity.id} className="flex items-center space-x-2">
-                    <Input
-                      value={activity.name}
-                      onChange={async (e) => {
-                        try {
-                          const { error } = await supabase
-                            .from('activities')
-                            .update({ name: e.target.value })
-                            .eq('id', activity.id);
-                          
-                          if (error) throw error;
-                          
-                          setActivities(activities.map(a => 
-                            a.id === activity.id ? { ...a, name: e.target.value } : a
-                          ));
-                        } catch (error) {
-                          console.error('Error updating activity:', error);
-                        }
-                      }}
-                      className="bg-card border-border"
-                    />
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      className="bg-destructive text-destructive-foreground h-8 w-8"
-                      onClick={() => handleDeleteClick('activity', activity.id, activity.name)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                {detailLoading.activities ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
-                ))}
+                ) : (
+                  activities.map((activity) => (
+                    <div key={activity.id} className="flex items-center space-x-2">
+                      {editingItem?.type === 'activity' && editingItem?.id === activity.id ? (
+                        <>
+                          <Input
+                            value={editingItem.value}
+                            onChange={(e) => setEditingItem({ ...editingItem, value: e.target.value })}
+                            className="bg-card border-border"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditItem();
+                              if (e.key === 'Escape') cancelEditItem();
+                            }}
+                            autoFocus
+                          />
+                          <Button
+                            size="icon"
+                            onClick={saveEditItem}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={cancelEditItem}
+                            className="bg-card border-border text-card-foreground hover:bg-accent h-8 w-8"
+                          >
+                            ✕
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Input
+                            value={activity.name}
+                            readOnly
+                            className="bg-card border-border cursor-pointer"
+                            onClick={() => handleEditItem('activity', activity.id, activity.name)}
+                          />
+                          <Button
+                            size="icon"
+                            onClick={() => handleEditItem('activity', activity.id, activity.name)}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="bg-destructive text-destructive-foreground h-8 w-8"
+                            onClick={() => handleDeleteClick('activity', activity.id, activity.name)}
+                            disabled={activities.length === 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -813,43 +993,77 @@ export default function CompanyDetails() {
                   size="icon"
                   onClick={() => handleAddItem("market")}
                   className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                  disabled={detailLoading.markets}
                 >
-                  <Plus className="h-4 w-4" />
+                  {detailLoading.markets ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                 </Button>
               </div>
               <div className="space-y-2">
-                {markets.map((market) => (
-                  <div key={market.id} className="flex items-center space-x-2">
-                    <Input
-                      value={market.name}
-                      onChange={async (e) => {
-                        try {
-                          const { error } = await supabase
-                            .from('markets')
-                            .update({ name: e.target.value })
-                            .eq('id', market.id);
-                          
-                          if (error) throw error;
-                          
-                          setMarkets(markets.map(m => 
-                            m.id === market.id ? { ...m, name: e.target.value } : m
-                          ));
-                        } catch (error) {
-                          console.error('Error updating market:', error);
-                        }
-                      }}
-                      className="bg-card border-border"
-                    />
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      className="bg-destructive text-destructive-foreground h-8 w-8"
-                      onClick={() => handleDeleteClick('market', market.id, market.name)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                {detailLoading.markets ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
-                ))}
+                ) : (
+                  markets.map((market) => (
+                    <div key={market.id} className="flex items-center space-x-2">
+                      {editingItem?.type === 'market' && editingItem?.id === market.id ? (
+                        <>
+                          <Input
+                            value={editingItem.value}
+                            onChange={(e) => setEditingItem({ ...editingItem, value: e.target.value })}
+                            className="bg-card border-border"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditItem();
+                              if (e.key === 'Escape') cancelEditItem();
+                            }}
+                            autoFocus
+                          />
+                          <Button
+                            size="icon"
+                            onClick={saveEditItem}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={cancelEditItem}
+                            className="bg-card border-border text-card-foreground hover:bg-accent h-8 w-8"
+                          >
+                            ✕
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Input
+                            value={market.name}
+                            readOnly
+                            className="bg-card border-border cursor-pointer"
+                            onClick={() => handleEditItem('market', market.id, market.name)}
+                          />
+                          <Button
+                            size="icon"
+                            onClick={() => handleEditItem('market', market.id, market.name)}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="destructive"
+                            className="bg-destructive text-destructive-foreground h-8 w-8"
+                            onClick={() => handleDeleteClick('market', market.id, market.name)}
+                            disabled={markets.length === 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
