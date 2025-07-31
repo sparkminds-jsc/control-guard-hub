@@ -482,20 +482,36 @@ export default function CompanyDetails() {
 
   // Transform current company data to API format
   const transformDataForAPI = () => {
+    // Group laws by domain-activity combination to merge related laws
+    const groupedLaws = lawsAndRegulations.reduce((acc, law) => {
+      const key = `${law.domains?.name || 'General'}-${law.activities?.name || 'General'}`;
+      if (!acc[key]) {
+        acc[key] = {
+          name: law.name,
+          description: law.description,
+          country: law.country,
+          source: law.source,
+          bussinessDomain: law.domains?.name || 'General',
+          actitivities: law.activities?.name || 'General'
+        };
+      } else {
+        // If same domain-activity exists, combine the laws
+        acc[key].name += `, ${law.name}`;
+        acc[key].description += ` | ${law.description}`;
+        if (law.source && !acc[key].source.includes(law.source)) {
+          acc[key].source += `, ${law.source}`;
+        }
+      }
+      return acc;
+    }, {} as Record<string, any>);
+
     return {
       websiteUrl: company?.website_url || "",
       companyName: company?.name || "",
       bussinessDomain: domains.map(d => d.name),
       activities: activities.map(a => a.name),
       markets: markets.map(m => m.name),
-      laws_and_regulations: lawsAndRegulations.map(law => ({
-        name: law.name,
-        description: law.description,
-        country: law.country,
-        source: law.source,
-        bussinessDomain: law.domains?.name || "",
-        actitivities: law.activities?.name || ""
-      }))
+      laws_and_regulations: Object.values(groupedLaws)
     };
   };
 
