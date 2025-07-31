@@ -480,6 +480,67 @@ export default function CompanyDetails() {
     setEditingItem(null);
   };
 
+  // Transform current company data to API format
+  const transformDataForAPI = () => {
+    return {
+      websiteUrl: company?.website_url || "",
+      companyName: company?.name || "",
+      bussinessDomain: domains.map(d => d.name),
+      activities: activities.map(a => a.name),
+      markets: markets.map(m => m.name),
+      laws_and_regulations: lawsAndRegulations.map(law => ({
+        name: law.name,
+        description: law.description,
+        country: law.country,
+        source: law.source,
+        bussinessDomain: law.domains?.name || "",
+        actitivities: law.activities?.name || ""
+      }))
+    };
+  };
+
+  // Handle Generate Control Framework API call
+  const handleGenerateControlFramework = async () => {
+    try {
+      setLoading(true);
+      
+      const apiData = transformDataForAPI();
+      
+      const response = await fetch('https://n8n.sparkminds.net/webhook/518265e4-3bee-4871-9450-994b3a271101', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      toast({
+        title: "Control Framework Generated",
+        description: "Control framework has been generated successfully.",
+        className: "fixed top-4 right-4 w-auto"
+      });
+      
+      console.log('Control Framework Result:', result);
+      
+    } catch (error) {
+      console.error('Error generating control framework:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate control framework. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleEditDuns = () => {
     setIsEditingDuns(true);
     setTempDunsNumber(company?.duns_number || "");
@@ -1118,8 +1179,17 @@ export default function CompanyDetails() {
               </Button>
               <Button 
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={handleGenerateControlFramework}
+                disabled={loading}
               >
-                Generate Control Framework
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate Control Framework"
+                )}
               </Button>
             </div>
           </div>
