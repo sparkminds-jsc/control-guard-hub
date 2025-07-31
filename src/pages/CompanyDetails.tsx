@@ -66,6 +66,7 @@ export default function CompanyDetails() {
     referralSource: ""
   });
   const [loading, setLoading] = useState(false);
+  const [lawsAndRegulations, setLawsAndRegulations] = useState<any[]>([]);
 
   // Load company data and related domains, activities, markets
   useEffect(() => {
@@ -113,8 +114,30 @@ export default function CompanyDetails() {
       if (marketsError) throw marketsError;
       setMarkets(marketsData || []);
 
+      // Load laws and regulations
+      await loadLawsAndRegulations();
+
     } catch (error) {
       console.error('Error loading company data:', error);
+    }
+  };
+
+  const loadLawsAndRegulations = async () => {
+    try {
+      const { data: lawsData, error: lawsError } = await supabase
+        .from('laws_and_regulations')
+        .select(`
+          *,
+          domains!laws_and_regulations_domain_id_fkey(name),
+          activities!laws_and_regulations_activity_id_fkey(name),
+          markets!laws_and_regulations_market_id_fkey(name)
+        `)
+        .eq('company_id', id);
+      
+      if (lawsError) throw lawsError;
+      setLawsAndRegulations(lawsData || []);
+    } catch (error) {
+      console.error('Error loading laws and regulations:', error);
     }
   };
 
@@ -305,9 +328,68 @@ export default function CompanyDetails() {
       });
       
       if (response.ok) {
+        const responseData = await response.json();
+        
+        // Clear existing laws and regulations for this company
+        await supabase
+          .from('laws_and_regulations')
+          .delete()
+          .eq('company_id', id);
+        
+        // Save new laws and regulations to database
+        if (responseData.laws_and_regulations) {
+          const lawsToInsert = [];
+          
+          for (const law of responseData.laws_and_regulations) {
+            // Find matching domains, activities, and markets
+            const matchingDomains = domains.filter(d => 
+              law.businessDomain && law.businessDomain.includes(d.name)
+            );
+            const matchingActivities = activities.filter(a => 
+              law.activities && law.activities.includes(a.name)
+            );
+            const matchingMarkets = markets.filter(m => 
+              law.country === m.name || (law.country === 'Global' && m.name === 'Global')
+            );
+            
+            // If no specific matches, use all markets for global laws
+            const marketsToUse = matchingMarkets.length > 0 ? matchingMarkets : 
+              (law.country === 'Global' ? markets : []);
+            
+            // Create entries for each combination
+            for (const domain of (matchingDomains.length > 0 ? matchingDomains : [null])) {
+              for (const activity of (matchingActivities.length > 0 ? matchingActivities : [null])) {
+                for (const market of (marketsToUse.length > 0 ? marketsToUse : [null])) {
+                  lawsToInsert.push({
+                    company_id: id,
+                    name: law.name,
+                    description: law.description,
+                    country: law.country,
+                    source: law.source,
+                    domain_id: domain?.id || null,
+                    activity_id: activity?.id || null,
+                    market_id: market?.id || null
+                  });
+                }
+              }
+            }
+          }
+          
+          if (lawsToInsert.length > 0) {
+            const { error: insertError } = await supabase
+              .from('laws_and_regulations')
+              .insert(lawsToInsert);
+            
+            if (insertError) throw insertError;
+          }
+        }
+        
+        // Reload laws and regulations data
+        await loadLawsAndRegulations();
+        
         toast({
           title: "Generated Successfully",
-          description: "Laws and regulations have been generated successfully.",
+          description: "Laws and regulations have been generated and saved successfully.",
           className: "fixed top-4 right-4 w-auto"
         });
         setShowLawsRegulations(true);
@@ -611,29 +693,49 @@ export default function CompanyDetails() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="text-card-foreground">1</TableCell>
-                  <TableCell className="text-card-foreground">Technology</TableCell>
-                  <TableCell className="text-card-foreground">Software Development</TableCell>
-                  <TableCell className="text-card-foreground">North America</TableCell>
-                  <TableCell className="text-card-foreground">GDPR Compliance</TableCell>
-                  <TableCell className="text-card-foreground">Data protection requirements</TableCell>
-                  <TableCell className="text-card-foreground">USA</TableCell>
-                  <TableCell className="text-card-foreground">Legal Department</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                        Detail
-                      </Button>
-                      <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="destructive" className="bg-destructive text-destructive-foreground">
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                {lawsAndRegulations.length > 0 ? (
+                  lawsAndRegulations.map((law, index) => (
+                    <TableRow key={law.id}>
+                      <TableCell className="text-card-foreground">{index + 1}</TableCell>
+                      <TableCell className="text-card-foreground">
+                        {law.domains?.name || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground">
+                        {law.activities?.name || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground">
+                        {law.markets?.name || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground">{law.name}</TableCell>
+                      <TableCell className="text-card-foreground max-w-xs truncate" title={law.description}>
+                        {law.description}
+                      </TableCell>
+                      <TableCell className="text-card-foreground">{law.country}</TableCell>
+                      <TableCell className="text-card-foreground max-w-xs truncate" title={law.source}>
+                        {law.source}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                            Detail
+                          </Button>
+                          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="destructive" className="bg-destructive text-destructive-foreground">
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center text-muted-foreground">
+                      No laws and regulations found. Click "Generate Laws and Regulation" to get started.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
