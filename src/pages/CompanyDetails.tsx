@@ -641,13 +641,22 @@ export default function CompanyDetails() {
               </div>
             </div>
 
-            <Button 
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={handleGenerateLaws}
-              disabled={loading}
-            >
-              {loading ? "Generating..." : "Generate Laws and Regulation"}
-            </Button>
+            <div className="flex gap-4">
+              <Button 
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={handleGenerateLaws}
+                disabled={loading || lawsAndRegulations.length > 0}
+              >
+                {loading ? "Generating..." : "Generate Laws and Regulation"}
+              </Button>
+              <Button 
+                variant="outline"
+                className="bg-card border-border text-card-foreground hover:bg-accent"
+                onClick={() => setShowLawsRegulations(!showLawsRegulations)}
+              >
+                {showLawsRegulations ? 'Hide Laws and Regulations' : 'See Laws and Regulations'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
