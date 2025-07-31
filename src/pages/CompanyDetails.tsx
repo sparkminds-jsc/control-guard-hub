@@ -64,6 +64,11 @@ export default function CompanyDetails() {
     id: "", 
     name: "" 
   });
+  const [deleteLawDialog, setDeleteLawDialog] = useState({
+    isOpen: false,
+    id: "",
+    name: ""
+  });
   const [lawsForm, setLawsForm] = useState({
     domain: "",
     activity: "",
@@ -1079,12 +1084,20 @@ export default function CompanyDetails() {
     }
   };
 
-  const handleDeleteLaw = async (lawId: string, lawName: string) => {
+  const handleDeleteLaw = (lawId: string, lawName: string) => {
+    setDeleteLawDialog({
+      isOpen: true,
+      id: lawId,
+      name: lawName
+    });
+  };
+
+  const confirmDeleteLaw = async () => {
     try {
       const { error } = await supabase
         .from('laws_and_regulations')
         .delete()
-        .eq('id', lawId);
+        .eq('id', deleteLawDialog.id);
 
       if (error) throw error;
 
@@ -1093,7 +1106,7 @@ export default function CompanyDetails() {
 
       toast({
         title: "Deleted Successfully",
-        description: `"${lawName}" has been deleted successfully.`,
+        description: `"${deleteLawDialog.name}" has been deleted successfully.`,
         className: "fixed top-4 right-4 w-auto"
       });
     } catch (error) {
@@ -1104,6 +1117,8 @@ export default function CompanyDetails() {
         variant: "destructive",
         className: "fixed top-4 right-4 w-auto"
       });
+    } finally {
+      setDeleteLawDialog({ isOpen: false, id: "", name: "" });
     }
   };
 
@@ -2598,6 +2613,34 @@ export default function CompanyDetails() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Laws and Regulation Confirmation Dialog */}
+      <AlertDialog open={deleteLawDialog.isOpen} onOpenChange={(open) => !open && setDeleteLawDialog({ isOpen: false, id: "", name: "" })}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-card-foreground">
+              Delete Laws and Regulation
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Are you sure you want to delete "{deleteLawDialog.name}"? This action cannot be undone and will permanently remove this law and regulation from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => setDeleteLawDialog({ isOpen: false, id: "", name: "" })}
+              className="bg-card border-border text-card-foreground hover:bg-accent"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteLaw}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Toaster />
     </div>
