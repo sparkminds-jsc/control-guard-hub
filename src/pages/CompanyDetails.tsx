@@ -112,6 +112,20 @@ export default function CompanyDetails() {
   const [cfFilterMarket, setCfFilterMarket] = useState("");
   const [cfFilterLaw, setCfFilterLaw] = useState("");
   
+  // Add Control Framework states
+  const [showAddControlFrameworkDialog, setShowAddControlFrameworkDialog] = useState(false);
+  const [addControlFrameworkForm, setAddControlFrameworkForm] = useState({
+    context: "",
+    description: "",
+    riskmanagement: "",
+    countryapplied: "",
+    referralsource: "",
+    id_domain: "none",
+    id_activities: "none",
+    id_markets: "none",
+    id_laws_and_regulations: "none"
+  });
+  
   // Edit states for detail sections
   const [editingItem, setEditingItem] = useState<{
     type: string;
@@ -622,6 +636,62 @@ export default function CompanyDetails() {
       id: cf.id,
       name: cf.context || "Control Framework"
     });
+  };
+
+  // Handle add control framework
+  const handleAddControlFramework = () => {
+    setAddControlFrameworkForm({
+      context: "",
+      description: "",
+      riskmanagement: "",
+      countryapplied: "",
+      referralsource: "",
+      id_domain: "none",
+      id_activities: "none",
+      id_markets: "none",
+      id_laws_and_regulations: "none"
+    });
+    setShowAddControlFrameworkDialog(true);
+  };
+
+  const saveAddControlFramework = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('control_framework')
+        .insert({
+          context: addControlFrameworkForm.context,
+          description: addControlFrameworkForm.description,
+          riskmanagement: addControlFrameworkForm.riskmanagement,
+          countryapplied: addControlFrameworkForm.countryapplied,
+          referralsource: addControlFrameworkForm.referralsource,
+          id_domain: addControlFrameworkForm.id_domain === "none" ? null : addControlFrameworkForm.id_domain,
+          id_activities: addControlFrameworkForm.id_activities === "none" ? null : addControlFrameworkForm.id_activities,
+          id_markets: addControlFrameworkForm.id_markets === "none" ? null : addControlFrameworkForm.id_markets,
+          id_laws_and_regulations: addControlFrameworkForm.id_laws_and_regulations === "none" ? null : addControlFrameworkForm.id_laws_and_regulations
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      await loadControlFrameworks();
+      setShowAddControlFrameworkDialog(false);
+      
+      toast({
+        title: "Control Framework Added",
+        description: "New control framework has been added successfully.",
+        className: "fixed top-4 right-4 w-auto"
+      });
+      
+    } catch (error) {
+      console.error('Error adding control framework:', error);
+      toast({
+        title: "Add Failed",
+        description: "An error occurred while adding the control framework.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    }
   };
 
   // Transform current company data to API format
@@ -1386,45 +1456,36 @@ export default function CompanyDetails() {
                 {showLawsRegulations ? 'Hide Laws and Regulations' : 'See Laws and Regulations'}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {showLawsRegulations && (
-        <Card className="bg-card">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-card-foreground font-bold">Laws and Regulation</CardTitle>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline"
-                  className="bg-card border-border text-card-foreground hover:bg-accent"
-                  onClick={() => {
-                    setFeedbackType('laws');
-                    setFeedbackTitle("");
-                    setFeedbackContent("");
-                    setShowFeedbackDialog(true);
-                  }}
-                >
-                  Add Feedback
-                </Button>
-                <Button 
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  onClick={() => setShowLawsDialog(true)}
-                >
-                  Add Laws and Regulation
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-      )}
+            {/* Laws and Regulation Content */}
+            {showLawsRegulations && (
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-card-foreground">Laws and Regulation</h3>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline"
+                      className="bg-card border-border text-card-foreground hover:bg-accent"
+                      onClick={() => {
+                        setFeedbackType('laws');
+                        setFeedbackTitle("");
+                        setFeedbackContent("");
+                        setShowFeedbackDialog(true);
+                      }}
+                    >
+                      Add Feedback
+                    </Button>
+                    <Button 
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      onClick={() => setShowLawsDialog(true)}
+                    >
+                      Add Laws and Regulation
+                    </Button>
+                  </div>
+                </div>
 
-      {showLawsRegulations && (
-        <Card className="bg-card">
-          <CardContent className="space-y-4">
-            {/* Search and Filter Section */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Laws Search and Filter Section */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -1634,18 +1695,26 @@ export default function CompanyDetails() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-card-foreground font-bold">Control Framework</CardTitle>
-              <Button 
-                variant="outline"
-                className="bg-card border-border text-card-foreground hover:bg-accent"
-                onClick={() => {
-                  setFeedbackType('control');
-                  setFeedbackTitle("");
-                  setFeedbackContent("");
-                  setShowFeedbackDialog(true);
-                }}
-              >
-                Add Feedback
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  className="bg-card border-border text-card-foreground hover:bg-accent"
+                  onClick={() => {
+                    setFeedbackType('control');
+                    setFeedbackTitle("");
+                    setFeedbackContent("");
+                    setShowFeedbackDialog(true);
+                  }}
+                >
+                  Add Feedback
+                </Button>
+                <Button 
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={handleAddControlFramework}
+                >
+                  Add Control Framework
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -2349,6 +2418,161 @@ export default function CompanyDetails() {
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Update Control Framework
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Control Framework Dialog */}
+      <Dialog open={showAddControlFrameworkDialog} onOpenChange={setShowAddControlFrameworkDialog}>
+        <DialogContent className="bg-card border-border max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">Add Control Framework</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Context</Label>
+                <Textarea
+                  value={addControlFrameworkForm.context}
+                  onChange={(e) => setAddControlFrameworkForm({ ...addControlFrameworkForm, context: e.target.value })}
+                  placeholder="Enter context..."
+                  className="bg-card border-border"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Description</Label>
+                <Textarea
+                  value={addControlFrameworkForm.description}
+                  onChange={(e) => setAddControlFrameworkForm({ ...addControlFrameworkForm, description: e.target.value })}
+                  placeholder="Enter description..."
+                  className="bg-card border-border"
+                  rows={3}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Risk Management</Label>
+                <Textarea
+                  value={addControlFrameworkForm.riskmanagement}
+                  onChange={(e) => setAddControlFrameworkForm({ ...addControlFrameworkForm, riskmanagement: e.target.value })}
+                  placeholder="Enter risk management details..."
+                  className="bg-card border-border"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Referral Source</Label>
+                <Textarea
+                  value={addControlFrameworkForm.referralsource}
+                  onChange={(e) => setAddControlFrameworkForm({ ...addControlFrameworkForm, referralsource: e.target.value })}
+                  placeholder="Enter referral source..."
+                  className="bg-card border-border"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-card-foreground font-medium">Country Applied</Label>
+              <Input
+                value={addControlFrameworkForm.countryapplied}
+                onChange={(e) => setAddControlFrameworkForm({ ...addControlFrameworkForm, countryapplied: e.target.value })}
+                placeholder="Enter country applied..."
+                className="bg-card border-border"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Domain</Label>
+                <Select 
+                  value={addControlFrameworkForm.id_domain} 
+                  onValueChange={(value) => setAddControlFrameworkForm({ ...addControlFrameworkForm, id_domain: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select domain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {domains.map((domain) => (
+                      <SelectItem key={domain.id} value={domain.id}>{domain.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Activity</Label>
+                <Select 
+                  value={addControlFrameworkForm.id_activities} 
+                  onValueChange={(value) => setAddControlFrameworkForm({ ...addControlFrameworkForm, id_activities: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select activity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {activities.map((activity) => (
+                      <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Market</Label>
+                <Select 
+                  value={addControlFrameworkForm.id_markets} 
+                  onValueChange={(value) => setAddControlFrameworkForm({ ...addControlFrameworkForm, id_markets: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select market" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {markets.map((market) => (
+                      <SelectItem key={market.id} value={market.id}>{market.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Law & Regulation</Label>
+                <Select 
+                  value={addControlFrameworkForm.id_laws_and_regulations} 
+                  onValueChange={(value) => setAddControlFrameworkForm({ ...addControlFrameworkForm, id_laws_and_regulations: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select law & regulation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {lawsAndRegulations.map((law) => (
+                      <SelectItem key={law.id} value={law.id}>{law.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAddControlFrameworkDialog(false)}
+              className="bg-card border-border text-card-foreground hover:bg-accent"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={saveAddControlFramework}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Add Control Framework
             </Button>
           </DialogFooter>
         </DialogContent>
