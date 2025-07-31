@@ -105,6 +105,70 @@ export type Database = {
           },
         ]
       }
+      laws_and_regulations: {
+        Row: {
+          activity_id: string | null
+          company_id: string
+          country: string
+          created_at: string
+          description: string
+          domain_id: string | null
+          id: string
+          market_id: string | null
+          name: string
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          activity_id?: string | null
+          company_id: string
+          country: string
+          created_at?: string
+          description: string
+          domain_id?: string | null
+          id?: string
+          market_id?: string | null
+          name: string
+          source: string
+          updated_at?: string
+        }
+        Update: {
+          activity_id?: string | null
+          company_id?: string
+          country?: string
+          created_at?: string
+          description?: string
+          domain_id?: string | null
+          id?: string
+          market_id?: string | null
+          name?: string
+          source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "laws_and_regulations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "laws_and_regulations_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "laws_and_regulations_market_id_fkey"
+            columns: ["market_id"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       markets: {
         Row: {
           company_id: string
