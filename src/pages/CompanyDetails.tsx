@@ -551,10 +551,10 @@ export default function CompanyDetails() {
       riskmanagement: cf.riskmanagement || "",
       countryapplied: cf.countryapplied || "",
       referralsource: cf.referralsource || "",
-      id_domain: cf.id_domain || "",
-      id_activities: cf.id_activities || "",
-      id_markets: cf.id_markets || "",
-      id_laws_and_regulations: cf.id_laws_and_regulations || ""
+      id_domain: cf.id_domain || "none",
+      id_activities: cf.id_activities || "none", 
+      id_markets: cf.id_markets || "none",
+      id_laws_and_regulations: cf.id_laws_and_regulations || "none"
     });
   };
 
@@ -570,10 +570,10 @@ export default function CompanyDetails() {
           riskmanagement: editControlFrameworkForm.riskmanagement,
           countryapplied: editControlFrameworkForm.countryapplied,
           referralsource: editControlFrameworkForm.referralsource,
-          id_domain: editControlFrameworkForm.id_domain || null,
-          id_activities: editControlFrameworkForm.id_activities || null,
-          id_markets: editControlFrameworkForm.id_markets || null,
-          id_laws_and_regulations: editControlFrameworkForm.id_laws_and_regulations || null
+          id_domain: editControlFrameworkForm.id_domain === "none" ? null : editControlFrameworkForm.id_domain,
+          id_activities: editControlFrameworkForm.id_activities === "none" ? null : editControlFrameworkForm.id_activities,
+          id_markets: editControlFrameworkForm.id_markets === "none" ? null : editControlFrameworkForm.id_markets,
+          id_laws_and_regulations: editControlFrameworkForm.id_laws_and_regulations === "none" ? null : editControlFrameworkForm.id_laws_and_regulations
         })
         .eq('id', editingControlFramework.id);
       
@@ -2257,7 +2257,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select domain" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {domains.map((domain) => (
                       <SelectItem key={domain.id} value={domain.id}>{domain.name}</SelectItem>
                     ))}
@@ -2274,7 +2274,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select activity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {activities.map((activity) => (
                       <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
                     ))}
@@ -2294,7 +2294,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select market" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {markets.map((market) => (
                       <SelectItem key={market.id} value={market.id}>{market.name}</SelectItem>
                     ))}
@@ -2311,7 +2311,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select law & regulation" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {lawsAndRegulations.map((law) => (
                       <SelectItem key={law.id} value={law.id}>{law.name}</SelectItem>
                     ))}
