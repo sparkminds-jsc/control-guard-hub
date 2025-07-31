@@ -153,7 +153,7 @@ export default function CompanyDetails() {
   // Setup realtime subscription for laws and regulations
   const setupRealtimeSubscription = useCallback(() => {
     const channel = supabase
-      .channel('laws-and-regulations-changes')
+      .channel('company-data-changes')
       .on(
         'postgres_changes',
         {
@@ -164,6 +164,17 @@ export default function CompanyDetails() {
         },
         () => {
           loadLawsAndRegulations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'control_framework'
+        },
+        () => {
+          loadControlFrameworks();
         }
       )
       .on(
