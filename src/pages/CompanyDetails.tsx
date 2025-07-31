@@ -838,25 +838,45 @@ export default function CompanyDetails() {
           const lawsToInsert = [];
           
           for (const law of responseData.laws_and_regulations) {
-            // Find matching domains, activities, and markets
+            // Parse domains - handle both string and array
+            const lawDomains = Array.isArray(law.bussinessDomain) 
+              ? law.bussinessDomain 
+              : law.bussinessDomain ? [law.bussinessDomain] : [];
+            
+            // Parse activities - handle both string and array  
+            const lawActivities = Array.isArray(law.actitivities)
+              ? law.actitivities
+              : law.actitivities ? [law.actitivities] : [];
+            
+            // Parse markets - handle both string and array
+            const lawMarkets = Array.isArray(law.markets)
+              ? law.markets
+              : law.markets ? [law.markets] : [];
+            
+            // Find matching domains
             const matchingDomains = domains.filter(d => 
-              law.bussinessDomain && d.name === law.bussinessDomain
+              lawDomains.some(lawDomain => d.name === lawDomain)
             );
+            
+            // Find matching activities
             const matchingActivities = activities.filter(a => 
-              law.actitivities && a.name === law.actitivities
+              lawActivities.some(lawActivity => a.name === lawActivity)
             );
+            
+            // Find matching markets
             const matchingMarkets = markets.filter(m => 
-              law.markets && (law.markets.includes(m.name) || law.markets === m.name)
+              lawMarkets.some(lawMarket => m.name === lawMarket)
             );
             
-            // If no specific matches, use all markets for global laws
-            const marketsToUse = matchingMarkets.length > 0 ? matchingMarkets : 
-              (law.market === 'Global' ? markets : []);
+            // If no specific matches, use all available for global laws
+            const domainsToUse = matchingDomains.length > 0 ? matchingDomains : [null];
+            const activitiesToUse = matchingActivities.length > 0 ? matchingActivities : [null];
+            const marketsToUse = matchingMarkets.length > 0 ? matchingMarkets : [null];
             
-            // Create entries for each combination
-            for (const domain of (matchingDomains.length > 0 ? matchingDomains : [null])) {
-              for (const activity of (matchingActivities.length > 0 ? matchingActivities : [null])) {
-                for (const market of (marketsToUse.length > 0 ? marketsToUse : [null])) {
+            // Create entries for each combination to avoid N/A values
+            for (const domain of domainsToUse) {
+              for (const activity of activitiesToUse) {
+                for (const market of marketsToUse) {
                   lawsToInsert.push({
                     company_id: id,
                     name: law.name,
