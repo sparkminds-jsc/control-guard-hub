@@ -225,11 +225,7 @@ export default function CompanyDetails() {
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-card-foreground font-medium">Country</Label>
-              <div className="text-card-foreground mt-1">{company?.country || 'N/A'}</div>
-            </div>
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <Label className="text-card-foreground font-medium">DUNS Number</Label>
               <div className="text-card-foreground mt-1">{company?.duns_number || 'N/A'}</div>
