@@ -34,6 +34,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function GenerateControlFramework() {
   const navigate = useNavigate();
@@ -124,8 +125,9 @@ export default function GenerateControlFramework() {
 
       // Show success toast
       toast({
-        title: "Success",
+        title: "Company Deleted Successfully",
         description: `Company "${companyName}" has been deleted successfully.`,
+        className: "fixed top-4 right-4 w-auto"
       });
 
       // Reload companies list
@@ -133,9 +135,10 @@ export default function GenerateControlFramework() {
     } catch (error) {
       console.error('Error deleting company:', error);
       toast({
-        title: "Error",
+        title: "Delete Failed",
         description: "Failed to delete company. Please try again.",
         variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
       });
     } finally {
       setLoading(false);
@@ -207,6 +210,13 @@ export default function GenerateControlFramework() {
       // Reload companies list to show the new company
       await loadCompanies();
       
+      // Show success toast
+      toast({
+        title: "Company Added Successfully",
+        description: `Company "${formData.companyName}" has been added successfully.`,
+        className: "fixed top-4 right-4 w-auto"
+      });
+      
       setIsDialogOpen(false);
       setFormData({
         companyName: "",
@@ -215,7 +225,12 @@ export default function GenerateControlFramework() {
       });
     } catch (error) {
       console.error('Error saving company:', error);
-      // You might want to show a toast notification here
+      toast({
+        title: "Add Company Failed",
+        description: "Failed to add company. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
     } finally {
       setLoading(false);
     }
@@ -386,6 +401,8 @@ export default function GenerateControlFramework() {
           </Table>
         </CardContent>
       </Card>
+      
+      <Toaster />
     </div>
   );
 }

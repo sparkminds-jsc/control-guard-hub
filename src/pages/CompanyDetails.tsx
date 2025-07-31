@@ -162,16 +162,16 @@ export default function CompanyDetails() {
       if (error) throw error;
       
       toast({
-        title: "Xóa thành công",
-        description: `${deleteDialog.name} đã được xóa khỏi danh sách.`,
+        title: "Deleted Successfully",
+        description: `"${deleteDialog.name}" has been removed from the list.`,
         className: "fixed top-4 right-4 w-auto"
       });
       
     } catch (error) {
       console.error('Error deleting item:', error);
       toast({
-        title: "Xóa thất bại",
-        description: "Có lỗi xảy ra khi xóa. Vui lòng thử lại.",
+        title: "Delete Failed",
+        description: "An error occurred while deleting. Please try again.",
         variant: "destructive",
         className: "fixed top-4 right-4 w-auto"
       });
@@ -200,6 +200,13 @@ export default function CompanyDetails() {
           
           if (error) throw error;
           setDomains([...domains, data]);
+          
+          toast({
+            title: "Domain Added Successfully",
+            description: `"${newItemValue.trim()}" has been added to domains.`,
+            className: "fixed top-4 right-4 w-auto"
+          });
+          
         } else if (showAddDialog.type === "activity") {
           const { data, error } = await supabase
             .from('activities')
@@ -212,6 +219,13 @@ export default function CompanyDetails() {
           
           if (error) throw error;
           setActivities([...activities, data]);
+          
+          toast({
+            title: "Activity Added Successfully",
+            description: `"${newItemValue.trim()}" has been added to activities.`,
+            className: "fixed top-4 right-4 w-auto"
+          });
+          
         } else if (showAddDialog.type === "market") {
           const { data, error } = await supabase
             .from('markets')
@@ -224,9 +238,21 @@ export default function CompanyDetails() {
           
           if (error) throw error;
           setMarkets([...markets, data]);
+          
+          toast({
+            title: "Market Added Successfully",
+            description: `"${newItemValue.trim()}" has been added to markets.`,
+            className: "fixed top-4 right-4 w-auto"
+          });
         }
       } catch (error) {
         console.error('Error saving new item:', error);
+        toast({
+          title: "Add Failed",
+          description: "An error occurred while adding the item. Please try again.",
+          variant: "destructive",
+          className: "fixed top-4 right-4 w-auto"
+        });
       }
     }
     setShowAddDialog({ type: "", open: false });
