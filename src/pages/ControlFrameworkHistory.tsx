@@ -1,548 +1,172 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
-import ControlFrameworkModal from "@/components/ControlFrameworkModal";
-
-interface Domain {
-  name: string;
-}
-
-interface Activity {
-  name: string;
-}
-
-interface Market {
-  name: string;
-}
-
-interface LawRegulation {
-  name: string;
-}
-
-interface FilterDomain {
-  id: string;
-  name: string;
-}
-
-interface FilterActivity {
-  id: string;
-  name: string;
-}
-
-interface FilterMarket {
-  id: string;
-  name: string;
-}
-
-interface FilterLawRegulation {
-  id: string;
-  name: string;
-}
-
-interface ControlFramework {
-  id: string;
-  context: string | null;
-  description: string | null;
-  countryapplied: string | null;
-  referralsource: string | null;
-  riskmanagement: string | null;
-  created_at: string;
-  updated_at: string;
-  domains: Domain | null;
-  activities: Activity | null;
-  markets: Market | null;
-  laws_and_regulations: LawRegulation | null;
-}
-
-const ITEMS_PER_PAGE = 10;
+import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
 
 export default function ControlFrameworkHistory() {
-  const { toast } = useToast();
-  const [controlFrameworks, setControlFrameworks] = useState<ControlFramework[]>([]);
-  const [filteredFrameworks, setFilteredFrameworks] = useState<ControlFramework[]>([]);
-  const [domains, setDomains] = useState<FilterDomain[]>([]);
-  const [activities, setActivities] = useState<FilterActivity[]>([]);
-  const [markets, setMarkets] = useState<FilterMarket[]>([]);
-  const [laws, setLaws] = useState<FilterLawRegulation[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDomain, setSelectedDomain] = useState<string>("all");
-  const [selectedActivity, setSelectedActivity] = useState<string>("all");
-  const [selectedMarket, setSelectedMarket] = useState<string>("all");
-  const [selectedLaw, setSelectedLaw] = useState<string>("all");
-  
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  
-  // Modal state
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingFramework, setEditingFramework] = useState<any>(null);
-  
-  useEffect(() => {
-    loadData();
-  }, []);
+  const [selectedLaw, setSelectedLaw] = useState<number>(0);
 
-  useEffect(() => {
-    applyFilters();
-  }, [controlFrameworks, searchTerm, selectedDomain, selectedActivity, selectedMarket, selectedLaw]);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      
-      // Load control frameworks with related data
-      const { data: frameworksData, error: frameworksError } = await supabase
-        .from('control_framework')
-        .select(`
-          *,
-          domains!control_framework_id_domain_fkey(name),
-          activities!control_framework_id_activities_fkey(name),
-          markets!control_framework_id_markets_fkey(name),
-          laws_and_regulations!control_framework_id_laws_and_regulations_fkey(name)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (frameworksError) throw frameworksError;
-      setControlFrameworks(frameworksData || []);
-
-      // Load filter options
-      const [domainsRes, activitiesRes, marketsRes, lawsRes] = await Promise.all([
-        supabase.from('domains').select('id, name').order('name'),
-        supabase.from('activities').select('id, name').order('name'),
-        supabase.from('markets').select('id, name').order('name'),
-        supabase.from('laws_and_regulations').select('id, name').order('name')
-      ]);
-
-      if (domainsRes.error) throw domainsRes.error;
-      if (activitiesRes.error) throw activitiesRes.error;
-      if (marketsRes.error) throw marketsRes.error;
-      if (lawsRes.error) throw lawsRes.error;
-
-      setDomains(domainsRes.data || []);
-      setActivities(activitiesRes.data || []);
-      setMarkets(marketsRes.data || []);
-      setLaws(lawsRes.data || []);
-
-    } catch (error) {
-      console.error('Error loading data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load control frameworks",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+  const lawsData = [
+    {
+      id: 1,
+      title: "GDPR Compliance",
+      domain: "Data Protection",
+      activity: "Data Processing",
+      market: "European Union",
+      detail: "General Data Protection Regulation compliance requirements",
+      countryApplied: "EU",
+      referralSource: "European Commission",
+      context: "This regulation applies to all organizations processing personal data of EU residents",
+      description: "GDPR establishes comprehensive data protection rules for organizations handling personal data within the EU jurisdiction."
+    },
+    {
+      id: 2,
+      title: "SOX Compliance",
+      domain: "Financial Reporting",
+      activity: "Financial Operations",
+      market: "United States",
+      detail: "Sarbanes-Oxley Act compliance for financial reporting",
+      countryApplied: "USA",
+      referralSource: "SEC",
+      context: "Applies to all publicly traded companies in the United States",
+      description: "SOX requires companies to maintain accurate financial records and implement internal controls over financial reporting."
+    },
+    {
+      id: 3,
+      title: "ISO 27001",
+      domain: "Information Security",
+      activity: "Security Management",
+      market: "Global",
+      detail: "Information Security Management System standards",
+      countryApplied: "International",
+      referralSource: "ISO Organization",
+      context: "International standard for information security management systems",
+      description: "ISO 27001 provides a framework for establishing, implementing, maintaining and continually improving an information security management system."
     }
-  };
-
-  const applyFilters = () => {
-    let filtered = controlFrameworks;
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(framework =>
-        framework.context?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        framework.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        framework.domains?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        framework.activities?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        framework.markets?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        framework.laws_and_regulations?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Domain filter
-    if (selectedDomain !== "all") {
-      filtered = filtered.filter(framework => framework.domains?.name === selectedDomain);
-    }
-
-    // Activity filter
-    if (selectedActivity !== "all") {
-      filtered = filtered.filter(framework => framework.activities?.name === selectedActivity);
-    }
-
-    // Market filter
-    if (selectedMarket !== "all") {
-      filtered = filtered.filter(framework => framework.markets?.name === selectedMarket);
-    }
-
-    // Law filter
-    if (selectedLaw !== "all") {
-      filtered = filtered.filter(framework => framework.laws_and_regulations?.name === selectedLaw);
-    }
-
-    setFilteredFrameworks(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('control_framework')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Control framework deleted successfully"
-      });
-
-      loadData();
-    } catch (error) {
-      console.error('Error deleting control framework:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete control framework",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setSelectedDomain("all");
-    setSelectedActivity("all");
-    setSelectedMarket("all");
-    setSelectedLaw("all");
-  };
-
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredFrameworks.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentFrameworks = filteredFrameworks.slice(startIndex, endIndex);
-
-  const goToPage = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(totalPages, page)));
-  };
-
-  if (loading) {
-    return (
-      <div className="flex-1 p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading control frameworks...</div>
-        </div>
-      </div>
-    );
-  }
+  ];
 
   return (
     <div className="flex-1 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-card-foreground">Control Framework History</h1>
-          <p className="text-muted-foreground">
-            Showing {filteredFrameworks.length} of {controlFrameworks.length} control frameworks
-          </p>
+        <h1 className="text-2xl font-bold text-card-foreground">Control Framework History</h1>
+        <div className="flex space-x-2">
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+            Save Changes
+          </Button>
+          <Button variant="destructive">
+            Delete
+          </Button>
         </div>
-        <Button onClick={() => {
-          setEditingFramework(null);
-          setModalOpen(true);
-        }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Control Framework
-        </Button>
       </div>
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Search & Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-            {/* Search */}
-            <div className="xl:col-span-2">
-              <Input
-                placeholder="Search frameworks..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-
-            {/* Domain Filter */}
-            <Select value={selectedDomain} onValueChange={setSelectedDomain}>
-              <SelectTrigger>
-                <SelectValue placeholder="Domain" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Domains</SelectItem>
-                {domains.map((domain) => (
-                  <SelectItem key={domain.id} value={domain.name}>
-                    {domain.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Activity Filter */}
-            <Select value={selectedActivity} onValueChange={setSelectedActivity}>
-              <SelectTrigger>
-                <SelectValue placeholder="Activity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Activities</SelectItem>
-                {activities.map((activity) => (
-                  <SelectItem key={activity.id} value={activity.name}>
-                    {activity.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Market Filter */}
-            <Select value={selectedMarket} onValueChange={setSelectedMarket}>
-              <SelectTrigger>
-                <SelectValue placeholder="Market" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Markets</SelectItem>
-                {markets.map((market) => (
-                  <SelectItem key={market.id} value={market.name}>
-                    {market.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Laws Filter */}
-            <Select value={selectedLaw} onValueChange={setSelectedLaw}>
-              <SelectTrigger>
-                <SelectValue placeholder="Laws" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Laws</SelectItem>
-                {laws.map((law) => (
-                  <SelectItem key={law.id} value={law.name}>
-                    {law.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex justify-end mt-4">
-            <Button variant="outline" onClick={clearFilters}>
-              Clear Filters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Results Table */}
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">No</TableHead>
-                <TableHead>Domain</TableHead>
-                <TableHead>Activity</TableHead>
-                <TableHead>Market</TableHead>
-                <TableHead>Laws & Regulation</TableHead>
-                <TableHead>Context</TableHead>
-                <TableHead>Country Applied</TableHead>
-                <TableHead>Referral Source</TableHead>
-                <TableHead className="w-[150px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentFrameworks.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
-                    No control frameworks found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                currentFrameworks.map((framework, index) => (
-                  <TableRow key={framework.id}>
-                    <TableCell>{startIndex + index + 1}</TableCell>
-                    <TableCell>
-                      {framework.domains?.name || "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      {framework.activities?.name || "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      {framework.markets?.name || "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      {framework.laws_and_regulations?.name ? (
-                        <div className="max-w-[200px] truncate" title={framework.laws_and_regulations.name}>
-                          {framework.laws_and_regulations.name}
-                        </div>
-                      ) : (
-                        "N/A"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-[300px] truncate" title={framework.context || ""}>
-                        {framework.context || "N/A"}
-                      </div>
-                    </TableCell>
-                    <TableCell>{framework.countryapplied || "N/A"}</TableCell>
-                    <TableCell>
-                      <div className="max-w-[150px] truncate" title={framework.referralsource || ""}>
-                        {framework.referralsource || "N/A"}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/control-framework/${framework.id}`}>
-                            <Eye className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={async () => {
-                            // Fetch the full framework data with IDs
-                            const { data: fullFramework } = await supabase
-                              .from('control_framework')
-                              .select('*')
-                              .eq('id', framework.id)
-                              .single();
-                            
-                            if (fullFramework) {
-                              setEditingFramework({
-                                id: fullFramework.id,
-                                context: fullFramework.context,
-                                description: fullFramework.description,
-                                countryapplied: fullFramework.countryapplied,
-                                referralsource: fullFramework.referralsource,
-                                riskmanagement: fullFramework.riskmanagement,
-                                id_domain: fullFramework.id_domain,
-                                id_activities: fullFramework.id_activities,
-                                id_markets: fullFramework.id_markets,
-                                id_laws_and_regulations: fullFramework.id_laws_and_regulations
-                              });
-                              setModalOpen(true);
-                            }
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Control Framework</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete this control framework? This action cannot be undone and will permanently remove the framework from your records.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDelete(framework.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6">
-          <div className="text-sm text-muted-foreground">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredFrameworks.length)} of {filteredFrameworks.length} results
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={currentPage === pageNum ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => goToPage(pageNum)}
-                    className="w-8 h-8"
+      {/* Main Content */}
+      <div className="flex gap-6 h-[calc(100vh-200px)]">
+        {/* Left Panel - Laws List */}
+        <div className="w-1/3">
+          <Card className="bg-card h-full">
+            <CardHeader>
+              <CardTitle className="text-card-foreground font-bold">Laws and Regulations</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="space-y-2 p-4">
+                {lawsData.map((law, index) => (
+                  <div
+                    key={law.id}
+                    className={`p-3 rounded-md cursor-pointer transition-colors ${
+                      selectedLaw === index
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted hover:bg-muted/80 text-card-foreground"
+                    }`}
+                    onClick={() => setSelectedLaw(index)}
                   >
-                    {pageNum}
-                  </Button>
-                );
-              })}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+                    <div className="font-medium">{law.title}</div>
+                    <div className="text-sm opacity-70">{law.domain}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      )}
 
-      {/* Modal */}
-      <ControlFrameworkModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        framework={editingFramework}
-        onSuccess={loadData}
-      />
+        {/* Right Panel - Detail */}
+        <div className="flex-1">
+          <Card className="bg-card h-full">
+            <CardContent className="p-6 h-full flex flex-col">
+              {/* Info Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-card-foreground mb-4">Info</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-card-foreground mb-1">Domain</label>
+                    <div className="text-card-foreground">{lawsData[selectedLaw].domain}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-card-foreground mb-1">Activity</label>
+                    <div className="text-card-foreground">{lawsData[selectedLaw].activity}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-card-foreground mb-1">Market</label>
+                    <div className="text-card-foreground">{lawsData[selectedLaw].market}</div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-card-foreground mb-1">Country Applied</label>
+                    <div className="text-card-foreground">{lawsData[selectedLaw].countryApplied}</div>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-card-foreground mb-1">Detail</label>
+                    <div className="text-card-foreground">{lawsData[selectedLaw].detail}</div>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-card-foreground mb-1">Referral Source</label>
+                    <div className="text-card-foreground">{lawsData[selectedLaw].referralSource}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Control Framework Section */}
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-card-foreground mb-4">Control Framework</h3>
+                <div className="space-y-4 flex-1">
+                  <div>
+                    <label className="block text-sm font-medium text-card-foreground mb-1">Context</label>
+                    <Input 
+                      defaultValue={lawsData[selectedLaw].context}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-card-foreground mb-1">Description</label>
+                    <Textarea 
+                      defaultValue={lawsData[selectedLaw].description}
+                      className="w-full h-32 resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between mt-6">
+                <Button 
+                  variant="outline"
+                  disabled={selectedLaw === 0}
+                  onClick={() => setSelectedLaw(Math.max(0, selectedLaw - 1))}
+                >
+                  Previous
+                </Button>
+                <Button 
+                  variant="outline"
+                  disabled={selectedLaw === lawsData.length - 1}
+                  onClick={() => setSelectedLaw(Math.min(lawsData.length - 1, selectedLaw + 1))}
+                >
+                  Next
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
