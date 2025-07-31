@@ -435,9 +435,9 @@ export default function CompanyDetails() {
       law.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       law.source.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesDomain = filterDomain === "" || law.domains?.name === filterDomain;
-    const matchesActivity = filterActivity === "" || law.activities?.name === filterActivity;
-    const matchesMarket = filterMarket === "" || law.markets?.name === filterMarket;
+    const matchesDomain = filterDomain === "" || filterDomain === "all-domains" || law.domains?.name === filterDomain;
+    const matchesActivity = filterActivity === "" || filterActivity === "all-activities" || law.activities?.name === filterActivity;
+    const matchesMarket = filterMarket === "" || filterMarket === "all-markets" || law.markets?.name === filterMarket;
     
     return matchesSearch && matchesDomain && matchesActivity && matchesMarket;
   });
@@ -517,9 +517,9 @@ export default function CompanyDetails() {
           description: editLawForm.description,
           country: editLawForm.country,
           source: editLawForm.source,
-          domain_id: editLawForm.domain_id || null,
-          activity_id: editLawForm.activity_id || null,
-          market_id: editLawForm.market_id || null
+          domain_id: editLawForm.domain_id === "no-domain" ? null : editLawForm.domain_id || null,
+          activity_id: editLawForm.activity_id === "no-activity" ? null : editLawForm.activity_id || null,
+          market_id: editLawForm.market_id === "no-market" ? null : editLawForm.market_id || null
         })
         .eq('id', editingLaw.id);
 
@@ -850,7 +850,7 @@ export default function CompanyDetails() {
                   <SelectValue placeholder="Filter by Domain" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Domains</SelectItem>
+                  <SelectItem value="all-domains">All Domains</SelectItem>
                   {domains.map((domain) => (
                     <SelectItem key={domain.id} value={domain.name}>{domain.name}</SelectItem>
                   ))}
@@ -861,7 +861,7 @@ export default function CompanyDetails() {
                   <SelectValue placeholder="Filter by Activity" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Activities</SelectItem>
+                  <SelectItem value="all-activities">All Activities</SelectItem>
                   {activities.map((activity) => (
                     <SelectItem key={activity.id} value={activity.name}>{activity.name}</SelectItem>
                   ))}
@@ -872,7 +872,7 @@ export default function CompanyDetails() {
                   <SelectValue placeholder="Filter by Market" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Markets</SelectItem>
+                  <SelectItem value="all-markets">All Markets</SelectItem>
                   {markets.map((market) => (
                     <SelectItem key={market.id} value={market.name}>{market.name}</SelectItem>
                   ))}
@@ -1179,7 +1179,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select domain" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Domain</SelectItem>
+                    <SelectItem value="no-domain">No Domain</SelectItem>
                     {domains.map((domain) => (
                       <SelectItem key={domain.id} value={domain.id}>{domain.name}</SelectItem>
                     ))}
@@ -1196,7 +1196,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select activity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Activity</SelectItem>
+                    <SelectItem value="no-activity">No Activity</SelectItem>
                     {activities.map((activity) => (
                       <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
                     ))}
@@ -1213,7 +1213,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select market" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Market</SelectItem>
+                    <SelectItem value="no-market">No Market</SelectItem>
                     {markets.map((market) => (
                       <SelectItem key={market.id} value={market.id}>{market.name}</SelectItem>
                     ))}
