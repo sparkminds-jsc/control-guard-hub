@@ -96,6 +96,17 @@ export default function CompanyDetails() {
     activities: false,
     markets: false
   });
+
+  // Control Framework states
+  const [controlFrameworks, setControlFrameworks] = useState<any[]>([]);
+  const [showControlFramework, setShowControlFramework] = useState(false);
+  const [controlFrameworkGenerated, setControlFrameworkGenerated] = useState(false);
+  const [cfCurrentPage, setCfCurrentPage] = useState(1);
+  const [cfSearchTerm, setCfSearchTerm] = useState("");
+  const [cfFilterDomain, setCfFilterDomain] = useState("");
+  const [cfFilterActivity, setCfFilterActivity] = useState("");
+  const [cfFilterMarket, setCfFilterMarket] = useState("");
+  const [cfFilterLaw, setCfFilterLaw] = useState("");
   
   // Edit states for detail sections
   const [editingItem, setEditingItem] = useState<{
@@ -214,6 +225,9 @@ export default function CompanyDetails() {
       // Load laws and regulations
       await loadLawsAndRegulations();
 
+      // Load control frameworks and check if generated
+      await loadControlFrameworks();
+
     } catch (error) {
       console.error('Error loading company data:', error);
     }
@@ -235,6 +249,27 @@ export default function CompanyDetails() {
       setLawsAndRegulations(lawsData || []);
     } catch (error) {
       console.error('Error loading laws and regulations:', error);
+    }
+  };
+
+  const loadControlFrameworks = async () => {
+    try {
+      const { data: cfData, error: cfError } = await supabase
+        .from('control_framework')
+        .select(`
+          *,
+          domains!control_framework_id_domain_fkey(name),
+          activities!control_framework_id_activities_fkey(name),
+          markets!control_framework_id_markets_fkey(name),
+          laws_and_regulations!control_framework_id_laws_and_regulations_fkey(name)
+        `);
+      
+      if (cfError) throw cfError;
+      setControlFrameworks(cfData || []);
+      setControlFrameworkGenerated(cfData && cfData.length > 0);
+      setShowControlFramework(cfData && cfData.length > 0);
+    } catch (error) {
+      console.error('Error loading control frameworks:', error);
     }
   };
 
@@ -534,13 +569,65 @@ export default function CompanyDetails() {
       
       const result = await response.json();
       
+      // Save control framework to database
+      if (result.control_framework && Array.isArray(result.control_framework)) {
+        const controlFrameworksToInsert = [];
+        
+        for (const cf of result.control_framework) {
+          // Find matching domains, activities, markets, laws
+          const matchingDomains = domains.filter(d => 
+            cf.domain && cf.domain.includes(d.name)
+          );
+          const matchingActivities = activities.filter(a => 
+            cf.activities && cf.activities.includes(a.name)
+          );
+          const matchingMarkets = markets.filter(m => 
+            cf.markets && cf.markets.includes(m.name)
+          );
+          const matchingLaws = lawsAndRegulations.filter(l => 
+            cf.laws_and_regulations && cf.laws_and_regulations.includes(l.name)
+          );
+          
+          // Create entries for each combination
+          for (const domain of (matchingDomains.length > 0 ? matchingDomains : [null])) {
+            for (const activity of (matchingActivities.length > 0 ? matchingActivities : [null])) {
+              for (const market of (matchingMarkets.length > 0 ? matchingMarkets : [null])) {
+                for (const law of (matchingLaws.length > 0 ? matchingLaws : [null])) {
+                  controlFrameworksToInsert.push({
+                    context: cf.context || '',
+                    description: cf.description || '',
+                    id_domain: domain?.id || null,
+                    id_activities: activity?.id || null,
+                    id_markets: market?.id || null,
+                    id_laws_and_regulations: law?.id || null,
+                    countryapplied: cf.countryApplied || '',
+                    riskmanagement: cf.riskManagement || '',
+                    referralsource: cf.referralSource || ''
+                  });
+                }
+              }
+            }
+          }
+        }
+        
+        if (controlFrameworksToInsert.length > 0) {
+          const { error: insertError } = await supabase
+            .from('control_framework')
+            .insert(controlFrameworksToInsert);
+          
+          if (insertError) throw insertError;
+        }
+        
+        // Reload control frameworks
+        await loadControlFrameworks();
+        setControlFrameworkGenerated(true);
+      }
+      
       toast({
         title: "Control Framework Generated",
-        description: "Control framework has been generated successfully.",
+        description: "Control framework has been generated and saved successfully.",
         className: "fixed top-4 right-4 w-auto"
       });
-      
-      console.log('Control Framework Result:', result);
       
     } catch (error) {
       console.error('Error generating control framework:', error);
@@ -698,6 +785,24 @@ export default function CompanyDetails() {
   const totalPages = Math.ceil(filteredLaws.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedLaws = filteredLaws.slice(startIndex, startIndex + itemsPerPage);
+
+  // Filter and paginate control frameworks
+  const filteredControlFrameworks = controlFrameworks.filter(cf => {
+    const matchesSearch = cfSearchTerm === "" || 
+      (cf.context && cf.context.toLowerCase().includes(cfSearchTerm.toLowerCase())) ||
+      (cf.description && cf.description.toLowerCase().includes(cfSearchTerm.toLowerCase()));
+    
+    const matchesDomain = cfFilterDomain === "" || cfFilterDomain === "all-domains" || cf.domains?.name === cfFilterDomain;
+    const matchesActivity = cfFilterActivity === "" || cfFilterActivity === "all-activities" || cf.activities?.name === cfFilterActivity;
+    const matchesMarket = cfFilterMarket === "" || cfFilterMarket === "all-markets" || cf.markets?.name === cfFilterMarket;
+    const matchesLaw = cfFilterLaw === "" || cfFilterLaw === "all-laws" || cf.laws_and_regulations?.name === cfFilterLaw;
+    
+    return matchesSearch && matchesDomain && matchesActivity && matchesMarket && matchesLaw;
+  });
+
+  const cfTotalPages = Math.ceil(filteredControlFrameworks.length / itemsPerPage);
+  const cfStartIndex = (cfCurrentPage - 1) * itemsPerPage;
+  const paginatedControlFrameworks = filteredControlFrameworks.slice(cfStartIndex, cfStartIndex + itemsPerPage);
 
   const saveLawsRegulation = async () => {
     try {
@@ -1182,31 +1287,15 @@ export default function CompanyDetails() {
       {showLawsRegulations && (
         <Card className="bg-card">
           <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-card-foreground font-bold">Laws and Regulation</CardTitle>
-            <div className="flex space-x-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-card-foreground font-bold">Laws and Regulation</CardTitle>
               <Button 
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={() => setShowLawsDialog(true)}
               >
                 Add Laws and Regulation
               </Button>
-              <Button 
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={handleGenerateControlFramework}
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate Control Framework"
-                )}
-              </Button>
             </div>
-          </div>
           </CardHeader>
         </Card>
       )}
@@ -1380,6 +1469,238 @@ export default function CompanyDetails() {
                     size="sm"
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage >= totalPages}
+                    className="bg-card border-border text-card-foreground hover:bg-accent"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Control Framework Buttons */}
+            <div className="flex justify-end space-x-2 pt-4 border-t border-border">
+              <Button 
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={handleGenerateControlFramework}
+                disabled={loading || controlFrameworkGenerated}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate Control Framework"
+                )}
+              </Button>
+              {controlFrameworkGenerated && (
+                <Button 
+                  variant="outline"
+                  className="bg-card border-border text-card-foreground hover:bg-accent"
+                  onClick={() => setShowControlFramework(!showControlFramework)}
+                >
+                  {showControlFramework ? 'Hide Control Framework' : 'See Control Framework'}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Control Framework Section */}
+      {showControlFramework && (
+        <Card className="bg-card">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-card-foreground font-bold">Control Framework</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Search and Filter Section */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search context, description..."
+                  value={cfSearchTerm}
+                  onChange={(e) => setCfSearchTerm(e.target.value)}
+                  className="bg-card border-border pl-10"
+                />
+              </div>
+              <Select value={cfFilterDomain} onValueChange={setCfFilterDomain}>
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue placeholder="Filter by Domain" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all-domains">All Domains</SelectItem>
+                  {domains.map((domain) => (
+                    <SelectItem key={domain.id} value={domain.name}>{domain.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={cfFilterActivity} onValueChange={setCfFilterActivity}>
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue placeholder="Filter by Activity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all-activities">All Activities</SelectItem>
+                  {activities.map((activity) => (
+                    <SelectItem key={activity.id} value={activity.name}>{activity.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={cfFilterMarket} onValueChange={setCfFilterMarket}>
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue placeholder="Filter by Market" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all-markets">All Markets</SelectItem>
+                  {markets.map((market) => (
+                    <SelectItem key={market.id} value={market.name}>{market.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={cfFilterLaw} onValueChange={setCfFilterLaw}>
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue placeholder="Filter by Law" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all-laws">All Laws</SelectItem>
+                  {lawsAndRegulations.map((law) => (
+                    <SelectItem key={law.id} value={law.name}>{law.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Statistics */}
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Showing {filteredControlFrameworks.length > 0 ? cfStartIndex + 1 : 0}-{Math.min(cfStartIndex + itemsPerPage, filteredControlFrameworks.length)} of {filteredControlFrameworks.length} results
+              </div>
+              <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
+                Total: {controlFrameworks.length} frameworks
+              </Badge>
+            </div>
+
+            {/* Control Framework Table */}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-card-foreground font-bold">No</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Domain</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Activity</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Market</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Law & Regulation</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Context</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Description</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Country</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Risk Management</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedControlFrameworks.length > 0 ? (
+                  paginatedControlFrameworks.map((cf, index) => (
+                    <TableRow key={cf.id}>
+                      <TableCell className="text-card-foreground">{cfStartIndex + index + 1}</TableCell>
+                      <TableCell className="text-card-foreground">
+                        {cf.domains?.name || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground">
+                        {cf.activities?.name || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground">
+                        {cf.markets?.name || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.laws_and_regulations?.name}>
+                        {cf.laws_and_regulations?.name || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.context}>
+                        {cf.context || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.description}>
+                        {cf.description || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground">
+                        {cf.countryapplied || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.riskmanagement}>
+                        {cf.riskmanagement || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="bg-card border-border text-card-foreground hover:bg-accent"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive" 
+                            className="bg-destructive text-destructive-foreground"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={10} className="text-center text-muted-foreground">
+                      {cfSearchTerm || cfFilterDomain || cfFilterActivity || cfFilterMarket || cfFilterLaw
+                        ? "No matching control frameworks found." 
+                        : "No control frameworks found."}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+
+            {/* Control Framework Pagination */}
+            {cfTotalPages > 1 && (
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Page {cfCurrentPage} of {cfTotalPages}
+                </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setCfCurrentPage(cfCurrentPage - 1)}
+                    disabled={cfCurrentPage <= 1}
+                    className="bg-card border-border text-card-foreground hover:bg-accent"
+                  >
+                    Previous
+                  </Button>
+                  {Array.from({ length: cfTotalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={cfCurrentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCfCurrentPage(page)}
+                      className={cfCurrentPage === page 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-card border-border text-card-foreground hover:bg-accent"
+                      }
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setCfCurrentPage(cfCurrentPage + 1)}
+                    disabled={cfCurrentPage >= cfTotalPages}
                     className="bg-card border-border text-card-foreground hover:bg-accent"
                   >
                     Next
