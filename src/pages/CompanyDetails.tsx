@@ -738,14 +738,15 @@ export default function CompanyDetails() {
             id_laws_and_regulations: matchingLaw?.id || null,
             countryapplied: cf.countryApplied || '',
             riskmanagement: cf.riskManagement || '',
-            referralsource: cf.referralSource || ''
+            referralsource: cf.referralSource || '',
+            isverify: false
           });
         }
         
         if (controlFrameworksToInsert.length > 0) {
           const { error: insertError } = await supabase
             .from('control_framework')
-            .insert(controlFrameworksToInsert);
+            .insert(controlFrameworksToInsert as any);
           
           if (insertError) {
             console.error('Insert error:', insertError);
@@ -1035,8 +1036,9 @@ export default function CompanyDetails() {
           id_domain: controlFrameworkForm.id_domain === "none" ? null : controlFrameworkForm.id_domain,
           id_activities: controlFrameworkForm.id_activities === "none" ? null : controlFrameworkForm.id_activities,
           id_markets: controlFrameworkForm.id_markets === "none" ? null : controlFrameworkForm.id_markets,
-          id_laws_and_regulations: controlFrameworkForm.id_laws_and_regulations === "none" ? null : controlFrameworkForm.id_laws_and_regulations
-        });
+          id_laws_and_regulations: controlFrameworkForm.id_laws_and_regulations === "none" ? null : controlFrameworkForm.id_laws_and_regulations,
+          isverify: false
+        } as any);
 
       if (error) throw error;
 
@@ -1065,6 +1067,38 @@ export default function CompanyDetails() {
       toast({
         title: "Save Failed",
         description: "Failed to save control framework. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    } finally {
+      setApiLoading(false);
+    }
+  };
+
+  const submitControlFramework = async () => {
+    try {
+      setApiLoading(true);
+      
+      // Update all control frameworks to set isverify = true
+      const { error } = await supabase
+        .from('control_framework')
+        .update({ isverify: true } as any);
+      
+      if (error) throw error;
+      
+      await loadControlFrameworks();
+      
+      toast({
+        title: "Control Framework Submitted",
+        description: "All control frameworks have been submitted successfully.",
+        className: "fixed top-4 right-4 w-auto"
+      });
+      
+    } catch (error) {
+      console.error('Error submitting control framework:', error);
+      toast({
+        title: "Submit Failed",
+        description: "Failed to submit control frameworks. Please try again.",
         variant: "destructive",
         className: "fixed top-4 right-4 w-auto"
       });
@@ -1763,14 +1797,7 @@ export default function CompanyDetails() {
                  </Button>
                  <Button 
                    className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                   onClick={() => {
-                     // Handle submit logic here
-                     toast({
-                       title: "Submit Control Framework",
-                       description: "Control framework submitted successfully.",
-                       className: "fixed top-4 right-4 w-auto"
-                     });
-                   }}
+                   onClick={submitControlFramework}
                  >
                    Submit
                  </Button>
