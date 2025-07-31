@@ -48,7 +48,6 @@ export type Database = {
       }
       companies: {
         Row: {
-          country: string | null
           created_at: string
           duns_number: string | null
           id: string
@@ -57,7 +56,6 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
-          country?: string | null
           created_at?: string
           duns_number?: string | null
           id?: string
@@ -66,7 +64,6 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
-          country?: string | null
           created_at?: string
           duns_number?: string | null
           id?: string

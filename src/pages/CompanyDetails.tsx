@@ -35,6 +35,8 @@ export default function CompanyDetails() {
   const [showAddDialog, setShowAddDialog] = useState({ type: "", open: false });
   const [showLawsDialog, setShowLawsDialog] = useState(false);
   const [newItemValue, setNewItemValue] = useState("");
+  const [isEditingDuns, setIsEditingDuns] = useState(false);
+  const [tempDunsNumber, setTempDunsNumber] = useState("");
   const [lawsForm, setLawsForm] = useState({
     domain: "",
     activity: "",
@@ -191,6 +193,32 @@ export default function CompanyDetails() {
     setNewItemValue("");
   };
 
+  const handleEditDuns = () => {
+    setIsEditingDuns(true);
+    setTempDunsNumber(company?.duns_number || "");
+  };
+
+  const saveDunsNumber = async () => {
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ duns_number: tempDunsNumber.trim() || null })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setCompany({ ...company, duns_number: tempDunsNumber.trim() || null });
+      setIsEditingDuns(false);
+    } catch (error) {
+      console.error('Error updating DUNS number:', error);
+    }
+  };
+
+  const cancelEditDuns = () => {
+    setIsEditingDuns(false);
+    setTempDunsNumber("");
+  };
+
   const saveLawsRegulation = () => {
     // Here you would normally save the laws regulation data
     console.log("Saving laws regulation:", lawsForm);
@@ -228,7 +256,42 @@ export default function CompanyDetails() {
           <div className="grid grid-cols-1 gap-4">
             <div>
               <Label className="text-card-foreground font-medium">DUNS Number</Label>
-              <div className="text-card-foreground mt-1">{company?.duns_number || 'N/A'}</div>
+              {isEditingDuns ? (
+                <div className="flex items-center space-x-2 mt-1">
+                  <Input
+                    value={tempDunsNumber}
+                    onChange={(e) => setTempDunsNumber(e.target.value)}
+                    placeholder="Enter DUNS number"
+                    className="bg-card border-border"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={saveDunsNumber}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={cancelEditDuns}
+                    className="bg-card border-border text-card-foreground hover:bg-accent"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 mt-1">
+                  <div className="text-card-foreground">{company?.duns_number || 'N/A'}</div>
+                  <Button
+                    size="sm"
+                    onClick={handleEditDuns}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    Edit
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
