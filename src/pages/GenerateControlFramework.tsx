@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,12 +19,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function GenerateControlFramework() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [companies, setCompanies] = useState<any[]>([]);
   const [filteredCompanies, setFilteredCompanies] = useState<any[]>([]);
@@ -72,6 +86,60 @@ export default function GenerateControlFramework() {
 
   const handleDetailClick = (companyId: string) => {
     navigate(`/company-details/${companyId}`);
+  };
+
+  const handleDelete = async (companyId: string, companyName: string) => {
+    try {
+      setLoading(true);
+      
+      // Delete related data first (domains, activities, markets)
+      const { error: domainsError } = await supabase
+        .from('domains')
+        .delete()
+        .eq('company_id', companyId);
+      
+      if (domainsError) throw domainsError;
+
+      const { error: activitiesError } = await supabase
+        .from('activities')
+        .delete()
+        .eq('company_id', companyId);
+      
+      if (activitiesError) throw activitiesError;
+
+      const { error: marketsError } = await supabase
+        .from('markets')
+        .delete()
+        .eq('company_id', companyId);
+      
+      if (marketsError) throw marketsError;
+
+      // Delete the company
+      const { error: companyError } = await supabase
+        .from('companies')
+        .delete()
+        .eq('id', companyId);
+
+      if (companyError) throw companyError;
+
+      // Show success toast
+      toast({
+        title: "Success",
+        description: `Company "${companyName}" has been deleted successfully.`,
+      });
+
+      // Reload companies list
+      await loadCompanies();
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete company. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -256,13 +324,13 @@ export default function GenerateControlFramework() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-card-foreground">
+                  <TableCell colSpan={6} className="text-center text-card-foreground">
                     Loading companies...
                   </TableCell>
                 </TableRow>
               ) : filteredCompanies.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-card-foreground">
+                  <TableCell colSpan={6} className="text-center text-card-foreground">
                     {filterValue ? "No companies found matching filter" : "No companies added yet"}
                   </TableCell>
                 </TableRow>
@@ -285,12 +353,30 @@ export default function GenerateControlFramework() {
                         >
                           Detail
                         </Button>
-                        <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                          Edit
-                        </Button>
-                        <Button size="sm" variant="destructive" className="bg-destructive text-destructive-foreground">
-                          Delete
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive" className="bg-destructive text-destructive-foreground">
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the company "{company.name}" and all its related data.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDelete(company.id, company.name)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
