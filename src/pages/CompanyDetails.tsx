@@ -119,6 +119,20 @@ export default function CompanyDetails() {
     value: string;
   } | null>(null);
 
+  // Control Framework edit states
+  const [editingControlFramework, setEditingControlFramework] = useState<any>(null);
+  const [editControlFrameworkForm, setEditControlFrameworkForm] = useState({
+    context: "",
+    description: "",
+    riskmanagement: "",
+    countryapplied: "",
+    referralsource: "",
+    id_domain: "",
+    id_activities: "",
+    id_markets: "",
+    id_laws_and_regulations: ""
+  });
+
   // Setup realtime subscription for laws and regulations
   const setupRealtimeSubscription = useCallback(() => {
     const channel = supabase
@@ -322,6 +336,15 @@ export default function CompanyDetails() {
         if (!error) {
           setMarkets(markets.filter(m => m.id !== deleteDialog.id));
         }
+      } else if (deleteDialog.type === 'control_framework') {
+        ({ error } = await supabase
+          .from('control_framework')
+          .delete()
+          .eq('id', deleteDialog.id));
+        
+        if (!error) {
+          setControlFrameworks(controlFrameworks.filter(cf => cf.id !== deleteDialog.id));
+        }
       }
       
       if (error) throw error;
@@ -517,6 +540,73 @@ export default function CompanyDetails() {
 
   const cancelEditItem = () => {
     setEditingItem(null);
+  };
+
+  // Handle edit control framework
+  const handleEditControlFramework = (cf: any) => {
+    setEditingControlFramework(cf);
+    setEditControlFrameworkForm({
+      context: cf.context || "",
+      description: cf.description || "",
+      riskmanagement: cf.riskmanagement || "",
+      countryapplied: cf.countryapplied || "",
+      referralsource: cf.referralsource || "",
+      id_domain: cf.id_domain || "",
+      id_activities: cf.id_activities || "",
+      id_markets: cf.id_markets || "",
+      id_laws_and_regulations: cf.id_laws_and_regulations || ""
+    });
+  };
+
+  const saveEditControlFramework = async () => {
+    if (!editingControlFramework) return;
+    
+    try {
+      const { error } = await supabase
+        .from('control_framework')
+        .update({
+          context: editControlFrameworkForm.context,
+          description: editControlFrameworkForm.description,
+          riskmanagement: editControlFrameworkForm.riskmanagement,
+          countryapplied: editControlFrameworkForm.countryapplied,
+          referralsource: editControlFrameworkForm.referralsource,
+          id_domain: editControlFrameworkForm.id_domain || null,
+          id_activities: editControlFrameworkForm.id_activities || null,
+          id_markets: editControlFrameworkForm.id_markets || null,
+          id_laws_and_regulations: editControlFrameworkForm.id_laws_and_regulations || null
+        })
+        .eq('id', editingControlFramework.id);
+      
+      if (error) throw error;
+      
+      await loadControlFrameworks();
+      setEditingControlFramework(null);
+      
+      toast({
+        title: "Control Framework Updated",
+        description: "Control framework has been updated successfully.",
+        className: "fixed top-4 right-4 w-auto"
+      });
+      
+    } catch (error) {
+      console.error('Error updating control framework:', error);
+      toast({
+        title: "Update Failed",
+        description: "An error occurred while updating the control framework.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    }
+  };
+
+  // Handle delete control framework
+  const handleDeleteControlFramework = (cf: any) => {
+    setDeleteDialog({
+      isOpen: true,
+      type: "control_framework",
+      id: cf.id,
+      name: cf.context || "Control Framework"
+    });
   };
 
   // Transform current company data to API format
@@ -1660,6 +1750,7 @@ export default function CompanyDetails() {
                           <Button 
                             size="sm" 
                             className="bg-primary text-primary-foreground hover:bg-primary/90"
+                            onClick={() => handleEditControlFramework(cf)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -1667,6 +1758,7 @@ export default function CompanyDetails() {
                             size="sm" 
                             variant="destructive" 
                             className="bg-destructive text-destructive-foreground"
+                            onClick={() => handleDeleteControlFramework(cf)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -2086,6 +2178,161 @@ export default function CompanyDetails() {
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Submit Feedback
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Control Framework Dialog */}
+      <Dialog open={editingControlFramework !== null} onOpenChange={(open) => !open && setEditingControlFramework(null)}>
+        <DialogContent className="bg-card border-border max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">Edit Control Framework</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Context</Label>
+                <Textarea
+                  value={editControlFrameworkForm.context}
+                  onChange={(e) => setEditControlFrameworkForm({ ...editControlFrameworkForm, context: e.target.value })}
+                  placeholder="Enter context..."
+                  className="bg-card border-border"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Description</Label>
+                <Textarea
+                  value={editControlFrameworkForm.description}
+                  onChange={(e) => setEditControlFrameworkForm({ ...editControlFrameworkForm, description: e.target.value })}
+                  placeholder="Enter description..."
+                  className="bg-card border-border"
+                  rows={3}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Risk Management</Label>
+                <Textarea
+                  value={editControlFrameworkForm.riskmanagement}
+                  onChange={(e) => setEditControlFrameworkForm({ ...editControlFrameworkForm, riskmanagement: e.target.value })}
+                  placeholder="Enter risk management details..."
+                  className="bg-card border-border"
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Referral Source</Label>
+                <Textarea
+                  value={editControlFrameworkForm.referralsource}
+                  onChange={(e) => setEditControlFrameworkForm({ ...editControlFrameworkForm, referralsource: e.target.value })}
+                  placeholder="Enter referral source..."
+                  className="bg-card border-border"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-card-foreground font-medium">Country Applied</Label>
+              <Input
+                value={editControlFrameworkForm.countryapplied}
+                onChange={(e) => setEditControlFrameworkForm({ ...editControlFrameworkForm, countryapplied: e.target.value })}
+                placeholder="Enter country applied..."
+                className="bg-card border-border"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Domain</Label>
+                <Select 
+                  value={editControlFrameworkForm.id_domain} 
+                  onValueChange={(value) => setEditControlFrameworkForm({ ...editControlFrameworkForm, id_domain: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select domain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {domains.map((domain) => (
+                      <SelectItem key={domain.id} value={domain.id}>{domain.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Activity</Label>
+                <Select 
+                  value={editControlFrameworkForm.id_activities} 
+                  onValueChange={(value) => setEditControlFrameworkForm({ ...editControlFrameworkForm, id_activities: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select activity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {activities.map((activity) => (
+                      <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Market</Label>
+                <Select 
+                  value={editControlFrameworkForm.id_markets} 
+                  onValueChange={(value) => setEditControlFrameworkForm({ ...editControlFrameworkForm, id_markets: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select market" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {markets.map((market) => (
+                      <SelectItem key={market.id} value={market.id}>{market.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Law & Regulation</Label>
+                <Select 
+                  value={editControlFrameworkForm.id_laws_and_regulations} 
+                  onValueChange={(value) => setEditControlFrameworkForm({ ...editControlFrameworkForm, id_laws_and_regulations: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select law & regulation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {lawsAndRegulations.map((law) => (
+                      <SelectItem key={law.id} value={law.id}>{law.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setEditingControlFramework(null)}
+              className="bg-card border-border text-card-foreground hover:bg-accent"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={saveEditControlFramework}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Update Control Framework
             </Button>
           </DialogFooter>
         </DialogContent>
