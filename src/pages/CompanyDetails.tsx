@@ -692,7 +692,7 @@ export default function CompanyDetails() {
   // Handle Generate Control Framework API call
   const handleGenerateControlFramework = async () => {
     try {
-      setLoading(true);
+      setApiLoading(true);
       
       const apiData = transformDataForAPI();
       
@@ -776,7 +776,7 @@ export default function CompanyDetails() {
         className: "fixed top-4 right-4 w-auto"
       });
     } finally {
-      setLoading(false);
+      setApiLoading(false);
     }
   };
 
@@ -808,7 +808,7 @@ export default function CompanyDetails() {
 
   const handleGenerateLaws = async () => {
     try {
-      setLoading(true);
+      setApiLoading(true);
       
       const response = await fetch('https://n8n.sparkminds.net/webhook/ed834647-9c18-4e33-9f33-5bb398fb35db', {
         method: 'POST',
@@ -902,7 +902,7 @@ export default function CompanyDetails() {
         className: "fixed top-4 right-4 w-auto"
       });
     } finally {
-      setLoading(false);
+      setApiLoading(false);
     }
   };
 
