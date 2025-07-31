@@ -123,10 +123,10 @@ export default function CompanyDetails() {
     riskmanagement: "",
     countryapplied: "",
     referralsource: "",
-    id_domain: "",
-    id_activities: "",
-    id_markets: "",
-    id_laws_and_regulations: ""
+    id_domain: "none",
+    id_activities: "none",
+    id_markets: "none",
+    id_laws_and_regulations: "none"
   });
   
   // Edit states for detail sections
@@ -1007,10 +1007,10 @@ export default function CompanyDetails() {
           riskmanagement: controlFrameworkForm.riskmanagement,
           countryapplied: controlFrameworkForm.countryapplied,
           referralsource: controlFrameworkForm.referralsource,
-          id_domain: controlFrameworkForm.id_domain || null,
-          id_activities: controlFrameworkForm.id_activities || null,
-          id_markets: controlFrameworkForm.id_markets || null,
-          id_laws_and_regulations: controlFrameworkForm.id_laws_and_regulations || null
+          id_domain: controlFrameworkForm.id_domain === "none" ? null : controlFrameworkForm.id_domain,
+          id_activities: controlFrameworkForm.id_activities === "none" ? null : controlFrameworkForm.id_activities,
+          id_markets: controlFrameworkForm.id_markets === "none" ? null : controlFrameworkForm.id_markets,
+          id_laws_and_regulations: controlFrameworkForm.id_laws_and_regulations === "none" ? null : controlFrameworkForm.id_laws_and_regulations
         });
 
       if (error) throw error;
@@ -1023,10 +1023,10 @@ export default function CompanyDetails() {
         riskmanagement: "",
         countryapplied: "",
         referralsource: "",
-        id_domain: "",
-        id_activities: "",
-        id_markets: "",
-        id_laws_and_regulations: ""
+        id_domain: "none",
+        id_activities: "none",
+        id_markets: "none",
+        id_laws_and_regulations: "none"
       });
 
       toast({
@@ -2530,7 +2530,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select domain" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {domains.map((domain) => (
                       <SelectItem key={domain.id} value={domain.id}>{domain.name}</SelectItem>
                     ))}
@@ -2547,7 +2547,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select activity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {activities.map((activity) => (
                       <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
                     ))}
@@ -2567,7 +2567,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select market" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {markets.map((market) => (
                       <SelectItem key={market.id} value={market.id}>{market.name}</SelectItem>
                     ))}
@@ -2584,7 +2584,7 @@ export default function CompanyDetails() {
                     <SelectValue placeholder="Select law & regulation" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {lawsAndRegulations.map((law) => (
                       <SelectItem key={law.id} value={law.id}>{law.name}</SelectItem>
                     ))}
@@ -2604,10 +2604,10 @@ export default function CompanyDetails() {
                   riskmanagement: "",
                   countryapplied: "",
                   referralsource: "",
-                  id_domain: "",
-                  id_activities: "",
-                  id_markets: "",
-                  id_laws_and_regulations: ""
+                  id_domain: "none",
+                  id_activities: "none",
+                  id_markets: "none",
+                  id_laws_and_regulations: "none"
                 });
               }}
               className="bg-card border-border text-card-foreground hover:bg-accent"
