@@ -553,7 +553,8 @@ export default function CompanyDetails() {
 
       if (error) throw error;
 
-      await loadLawsAndRegulations();
+      // Reload all related data
+      await loadCompanyData();
 
       toast({
         title: "Deleted Successfully",
