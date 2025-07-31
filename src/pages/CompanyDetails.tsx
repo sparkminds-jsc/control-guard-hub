@@ -51,6 +51,9 @@ export default function CompanyDetails() {
   const [showAddDialog, setShowAddDialog] = useState({ type: "", open: false });
   const [showLawsDialog, setShowLawsDialog] = useState(false);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [feedbackType, setFeedbackType] = useState<'laws' | 'control'>('laws');
+  const [feedbackTitle, setFeedbackTitle] = useState("");
+  const [feedbackContent, setFeedbackContent] = useState("");
   const [newItemValue, setNewItemValue] = useState("");
   const [feedbackText, setFeedbackText] = useState("");
   const [isEditingDuns, setIsEditingDuns] = useState(false);
@@ -268,7 +271,7 @@ export default function CompanyDetails() {
       if (cfError) throw cfError;
       setControlFrameworks(cfData || []);
       setControlFrameworkGenerated(cfData && cfData.length > 0);
-      setShowControlFramework(cfData && cfData.length > 0);
+      // Don't automatically show control framework, let user decide
     } catch (error) {
       console.error('Error loading control frameworks:', error);
     }
@@ -615,9 +618,10 @@ export default function CompanyDetails() {
           console.log('Successfully inserted', controlFrameworksToInsert.length, 'control frameworks');
         }
         
-        // Reload control frameworks
+        // Reload control frameworks and show the section
         await loadControlFrameworks();
         setControlFrameworkGenerated(true);
+        setShowControlFramework(true);
       }
       
       toast({
@@ -1286,12 +1290,26 @@ export default function CompanyDetails() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-card-foreground font-bold">Laws and Regulation</CardTitle>
-              <Button 
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={() => setShowLawsDialog(true)}
-              >
-                Add Laws and Regulation
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  className="bg-card border-border text-card-foreground hover:bg-accent"
+                  onClick={() => {
+                    setFeedbackType('laws');
+                    setFeedbackTitle("");
+                    setFeedbackContent("");
+                    setShowFeedbackDialog(true);
+                  }}
+                >
+                  Add Feedback
+                </Button>
+                <Button 
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => setShowLawsDialog(true)}
+                >
+                  Add Laws and Regulation
+                </Button>
+              </div>
             </div>
           </CardHeader>
         </Card>
@@ -1510,6 +1528,18 @@ export default function CompanyDetails() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-card-foreground font-bold">Control Framework</CardTitle>
+              <Button 
+                variant="outline"
+                className="bg-card border-border text-card-foreground hover:bg-accent"
+                onClick={() => {
+                  setFeedbackType('control');
+                  setFeedbackTitle("");
+                  setFeedbackContent("");
+                  setShowFeedbackDialog(true);
+                }}
+              >
+                Add Feedback
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -2004,15 +2034,26 @@ export default function CompanyDetails() {
       <Dialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>
         <DialogContent className="bg-card border-border max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-card-foreground">Add Feedback Company Info</DialogTitle>
+            <DialogTitle className="text-card-foreground">
+              Add Feedback for {feedbackType === 'laws' ? 'Laws & Regulations' : 'Control Framework'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label className="text-card-foreground font-medium">Feedback</Label>
+              <Label className="text-card-foreground font-medium">Title</Label>
+              <Input
+                value={feedbackTitle}
+                onChange={(e) => setFeedbackTitle(e.target.value)}
+                placeholder="Enter feedback title..."
+                className="bg-card border-border"
+              />
+            </div>
+            <div>
+              <Label className="text-card-foreground font-medium">Content</Label>
               <Textarea
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                placeholder="Enter your feedback about the company information..."
+                value={feedbackContent}
+                onChange={(e) => setFeedbackContent(e.target.value)}
+                placeholder={`Enter your feedback about ${feedbackType === 'laws' ? 'laws and regulations' : 'control framework'}...`}
                 className="bg-card border-border min-h-32"
                 rows={6}
               />
@@ -2023,7 +2064,8 @@ export default function CompanyDetails() {
               variant="outline" 
               onClick={() => {
                 setShowFeedbackDialog(false);
-                setFeedbackText("");
+                setFeedbackTitle("");
+                setFeedbackContent("");
               }}
               className="bg-card border-border text-card-foreground hover:bg-accent"
             >
@@ -2032,9 +2074,14 @@ export default function CompanyDetails() {
             <Button 
               onClick={() => {
                 // TODO: Add feedback logic here
-                console.log("Feedback:", feedbackText);
+                console.log("Feedback:", {
+                  type: feedbackType,
+                  title: feedbackTitle,
+                  content: feedbackContent
+                });
                 setShowFeedbackDialog(false);
-                setFeedbackText("");
+                setFeedbackTitle("");
+                setFeedbackContent("");
               }}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
