@@ -49,7 +49,9 @@ export default function CompanyDetails() {
   const [markets, setMarkets] = useState<any[]>([]);
   const [showAddDialog, setShowAddDialog] = useState({ type: "", open: false });
   const [showLawsDialog, setShowLawsDialog] = useState(false);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [newItemValue, setNewItemValue] = useState("");
+  const [feedbackText, setFeedbackText] = useState("");
   const [isEditingDuns, setIsEditingDuns] = useState(false);
   const [tempDunsNumber, setTempDunsNumber] = useState("");
   const [deleteDialog, setDeleteDialog] = useState({ 
@@ -821,20 +823,51 @@ export default function CompanyDetails() {
       {showDetails && (
         <Card className="bg-card">
           <CardHeader>
-            <CardTitle className="text-card-foreground font-bold">Detail Section</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-card-foreground font-bold">Detail Section</CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => handleAddItem("domain")}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  disabled={detailLoading.domains}
+                >
+                  {detailLoading.domains ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                  Add Domain
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => handleAddItem("activity")}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  disabled={detailLoading.activities}
+                >
+                  {detailLoading.activities ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                  Add Activity
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => handleAddItem("market")}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  disabled={detailLoading.markets}
+                >
+                  {detailLoading.markets ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                  Add Market
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setShowFeedbackDialog(true)}
+                  className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Feedback
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label className="text-card-foreground font-medium text-base">Domains</Label>
-                <Button
-                  size="icon"
-                  onClick={() => handleAddItem("domain")}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
-                  disabled={detailLoading.domains}
-                >
-                  {detailLoading.domains ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                </Button>
               </div>
               <div className="space-y-2">
                 {detailLoading.domains ? (
@@ -908,14 +941,6 @@ export default function CompanyDetails() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label className="text-card-foreground font-medium text-base">Activities</Label>
-                <Button
-                  size="icon"
-                  onClick={() => handleAddItem("activity")}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
-                  disabled={detailLoading.activities}
-                >
-                  {detailLoading.activities ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                </Button>
               </div>
               <div className="space-y-2">
                 {detailLoading.activities ? (
@@ -989,14 +1014,6 @@ export default function CompanyDetails() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label className="text-card-foreground font-medium text-base">Markets</Label>
-                <Button
-                  size="icon"
-                  onClick={() => handleAddItem("market")}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 w-8"
-                  disabled={detailLoading.markets}
-                >
-                  {detailLoading.markets ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                </Button>
               </div>
               <div className="space-y-2">
                 {detailLoading.markets ? (
@@ -1587,6 +1604,50 @@ export default function CompanyDetails() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Feedback Dialog */}
+      <Dialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog}>
+        <DialogContent className="bg-card border-border max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">Add Feedback Company Info</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-card-foreground font-medium">Feedback</Label>
+              <Textarea
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="Enter your feedback about the company information..."
+                className="bg-card border-border min-h-32"
+                rows={6}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowFeedbackDialog(false);
+                setFeedbackText("");
+              }}
+              className="bg-card border-border text-card-foreground hover:bg-accent"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                // TODO: Add feedback logic here
+                console.log("Feedback:", feedbackText);
+                setShowFeedbackDialog(false);
+                setFeedbackText("");
+              }}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Submit Feedback
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Toaster />
     </div>
