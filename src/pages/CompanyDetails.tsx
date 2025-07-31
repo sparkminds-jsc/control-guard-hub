@@ -65,6 +65,7 @@ export default function CompanyDetails() {
     countryApplied: "",
     referralSource: ""
   });
+  const [loading, setLoading] = useState(false);
 
   // Load company data and related domains, activities, markets
   useEffect(() => {
@@ -283,6 +284,47 @@ export default function CompanyDetails() {
   const cancelEditDuns = () => {
     setIsEditingDuns(false);
     setTempDunsNumber("");
+  };
+
+  const handleGenerateLaws = async () => {
+    try {
+      setLoading(true);
+      
+      const response = await fetch('https://n8n.sparkminds.net/webhook/ed834647-9c18-4e33-9f33-5bb398fb35db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          websiteUrl: company?.website_url || "",
+          companyName: company?.name || "",
+          bussinessDomain: domains.map(d => d.name),
+          activities: activities.map(a => a.name),
+          markets: markets.map(m => m.name)
+        })
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Generated Successfully",
+          description: "Laws and regulations have been generated successfully.",
+          className: "fixed top-4 right-4 w-auto"
+        });
+        setShowLawsRegulations(true);
+      } else {
+        throw new Error('Failed to generate laws and regulations');
+      }
+    } catch (error) {
+      console.error('Error generating laws:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate laws and regulations. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveLawsRegulation = () => {
@@ -519,9 +561,10 @@ export default function CompanyDetails() {
 
             <Button 
               className="bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={() => setShowLawsRegulations(true)}
+              onClick={handleGenerateLaws}
+              disabled={loading}
             >
-              Get Laws and Regulation
+              {loading ? "Generating..." : "Generate Laws and Regulation"}
             </Button>
           </CardContent>
         </Card>
