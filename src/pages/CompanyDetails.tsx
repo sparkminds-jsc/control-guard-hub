@@ -840,13 +840,13 @@ export default function CompanyDetails() {
           for (const law of responseData.laws_and_regulations) {
             // Find matching domains, activities, and markets
             const matchingDomains = domains.filter(d => 
-              law.businessDomain && law.businessDomain.includes(d.name)
+              law.bussinessDomain && d.name === law.bussinessDomain
             );
             const matchingActivities = activities.filter(a => 
-              law.activities && law.activities.includes(a.name)
+              law.actitivities && a.name === law.actitivities
             );
             const matchingMarkets = markets.filter(m => 
-              law.market === m.name || (law.market === 'Global' && m.name === 'Global')
+              law.markets && (law.markets.includes(m.name) || law.markets === m.name)
             );
             
             // If no specific matches, use all markets for global laws
