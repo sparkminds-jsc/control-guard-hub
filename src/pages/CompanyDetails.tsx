@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,12 +87,73 @@ export default function CompanyDetails() {
     market_id: ""
   });
 
+  // Setup realtime subscription for laws and regulations
+  const setupRealtimeSubscription = useCallback(() => {
+    const channel = supabase
+      .channel('laws-and-regulations-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'laws_and_regulations',
+          filter: `company_id=eq.${id}`
+        },
+        () => {
+          loadLawsAndRegulations();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'domains',
+          filter: `company_id=eq.${id}`
+        },
+        () => {
+          loadCompanyData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'activities',
+          filter: `company_id=eq.${id}`
+        },
+        () => {
+          loadCompanyData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'markets',
+          filter: `company_id=eq.${id}`
+        },
+        () => {
+          loadCompanyData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
   // Load company data and related domains, activities, markets
   useEffect(() => {
     if (id) {
       loadCompanyData();
+      const cleanup = setupRealtimeSubscription();
+      return cleanup;
     }
-  }, [id]);
+  }, [id, setupRealtimeSubscription]);
 
   const loadCompanyData = async () => {
     try {
@@ -203,6 +264,9 @@ export default function CompanyDetails() {
       }
       
       if (error) throw error;
+      
+      // Reload laws and regulations since domain/activity/market references might be affected
+      await loadLawsAndRegulations();
       
       toast({
         title: "Deleted Successfully",
