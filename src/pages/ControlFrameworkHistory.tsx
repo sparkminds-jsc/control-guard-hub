@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -180,8 +181,6 @@ export default function ControlFrameworkHistory() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this control framework?")) return;
-
     try {
       const { error } = await supabase
         .from('control_framework')
@@ -244,6 +243,12 @@ export default function ControlFrameworkHistory() {
             Showing {filteredFrameworks.length} of {controlFrameworks.length} control frameworks
           </p>
         </div>
+        <Button asChild>
+          <Link to="/generate-control-framework">
+            <Plus className="h-4 w-4 mr-2" />
+            Add New Control Framework
+          </Link>
+        </Button>
       </div>
 
       {/* Filters */}
@@ -364,25 +369,13 @@ export default function ControlFrameworkHistory() {
                   <TableRow key={framework.id}>
                     <TableCell>{startIndex + index + 1}</TableCell>
                     <TableCell>
-                      {framework.domains?.name ? (
-                        <Badge variant="secondary">{framework.domains.name}</Badge>
-                      ) : (
-                        "N/A"
-                      )}
+                      {framework.domains?.name || "N/A"}
                     </TableCell>
                     <TableCell>
-                      {framework.activities?.name ? (
-                        <Badge variant="outline">{framework.activities.name}</Badge>
-                      ) : (
-                        "N/A"
-                      )}
+                      {framework.activities?.name || "N/A"}
                     </TableCell>
                     <TableCell>
-                      {framework.markets?.name ? (
-                        <Badge variant="outline">{framework.markets.name}</Badge>
-                      ) : (
-                        "N/A"
-                      )}
+                      {framework.markets?.name || "N/A"}
                     </TableCell>
                     <TableCell>
                       {framework.laws_and_regulations?.name ? (
@@ -416,14 +409,34 @@ export default function ControlFrameworkHistory() {
                             <Edit className="h-4 w-4" />
                           </Link>
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleDelete(framework.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Control Framework</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this control framework? This action cannot be undone and will permanently remove the framework from your records.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDelete(framework.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
