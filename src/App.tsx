@@ -12,6 +12,7 @@ import CompanyInfoFeedback from "./pages/CompanyInfoFeedback";
 import CompanyLawsFeedback from "./pages/CompanyLawsFeedback";
 import CompanyControlFeedback from "./pages/CompanyControlFeedback";
 import CompanyDetails from "./pages/CompanyDetails";
+import ControlFrameworkDetail from "./pages/ControlFrameworkDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,15 +29,16 @@ const App = () => (
             <div className="flex-1 flex flex-col">
               <AppHeader />
               <main className="flex-1 bg-background">
-                <Routes>
-                  <Route path="/" element={<GenerateControlFramework />} />
-                  <Route path="/history" element={<ControlFrameworkHistory />} />
-                  <Route path="/company-info" element={<CompanyInfoFeedback />} />
-                  <Route path="/company-laws" element={<CompanyLawsFeedback />} />
-                  <Route path="/company-control" element={<CompanyControlFeedback />} />
-                  <Route path="/company-details/:id" element={<CompanyDetails />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+          <Routes>
+            <Route path="/" element={<GenerateControlFramework />} />
+            <Route path="/history" element={<ControlFrameworkHistory />} />
+            <Route path="/company-info" element={<CompanyInfoFeedback />} />
+            <Route path="/company-laws" element={<CompanyLawsFeedback />} />
+            <Route path="/company-control" element={<CompanyControlFeedback />} />
+            <Route path="/company-details/:id" element={<CompanyDetails />} />
+            <Route path="/control-framework/:id" element={<ControlFrameworkDetail />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
               </main>
             </div>
           </div>

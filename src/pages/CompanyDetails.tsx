@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Trash2, Plus, Edit, Eye, Search, Filter, Loader2 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +40,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CompanyDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [showDetails, setShowDetails] = useState(false);
   const [showLawsRegulations, setShowLawsRegulations] = useState(false);
@@ -1584,14 +1585,12 @@ export default function CompanyDetails() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-card-foreground font-bold">No</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Context</TableHead>
                   <TableHead className="text-card-foreground font-bold">Domain</TableHead>
                   <TableHead className="text-card-foreground font-bold">Activity</TableHead>
-                  <TableHead className="text-card-foreground font-bold">Market</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Country Applied</TableHead>
                   <TableHead className="text-card-foreground font-bold">Law & Regulation</TableHead>
-                  <TableHead className="text-card-foreground font-bold">Context</TableHead>
-                  <TableHead className="text-card-foreground font-bold">Description</TableHead>
-                  <TableHead className="text-card-foreground font-bold">Country</TableHead>
-                  <TableHead className="text-card-foreground font-bold">Risk Management</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Referral Source</TableHead>
                   <TableHead className="text-card-foreground font-bold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1600,6 +1599,9 @@ export default function CompanyDetails() {
                   paginatedControlFrameworks.map((cf, index) => (
                     <TableRow key={cf.id}>
                       <TableCell className="text-card-foreground">{cfStartIndex + index + 1}</TableCell>
+                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.context}>
+                        {cf.context || 'N/A'}
+                      </TableCell>
                       <TableCell className="text-card-foreground">
                         {cf.domains?.name || 'N/A'}
                       </TableCell>
@@ -1607,22 +1609,13 @@ export default function CompanyDetails() {
                         {cf.activities?.name || 'N/A'}
                       </TableCell>
                       <TableCell className="text-card-foreground">
-                        {cf.markets?.name || 'N/A'}
+                        {cf.countryapplied || 'N/A'}
                       </TableCell>
                       <TableCell className="text-card-foreground max-w-xs truncate" title={cf.laws_and_regulations?.name}>
                         {cf.laws_and_regulations?.name || 'N/A'}
                       </TableCell>
-                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.context}>
-                        {cf.context || 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.description}>
-                        {cf.description || 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-card-foreground">
-                        {cf.countryapplied || 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.riskmanagement}>
-                        {cf.riskmanagement || 'N/A'}
+                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.referralsource}>
+                        {cf.referralsource || 'N/A'}
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
@@ -1630,6 +1623,7 @@ export default function CompanyDetails() {
                             size="sm" 
                             variant="outline"
                             className="bg-card border-border text-card-foreground hover:bg-accent"
+                            onClick={() => navigate(`/control-framework/${cf.id}`)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -1652,7 +1646,7 @@ export default function CompanyDetails() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground">
                       {cfSearchTerm || cfFilterDomain || cfFilterActivity || cfFilterMarket || cfFilterLaw
                         ? "No matching control frameworks found." 
                         : "No control frameworks found."}
