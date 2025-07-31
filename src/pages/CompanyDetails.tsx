@@ -846,12 +846,12 @@ export default function CompanyDetails() {
               law.activities && law.activities.includes(a.name)
             );
             const matchingMarkets = markets.filter(m => 
-              law.country === m.name || (law.country === 'Global' && m.name === 'Global')
+              law.market === m.name || (law.market === 'Global' && m.name === 'Global')
             );
             
             // If no specific matches, use all markets for global laws
             const marketsToUse = matchingMarkets.length > 0 ? matchingMarkets : 
-              (law.country === 'Global' ? markets : []);
+              (law.market === 'Global' ? markets : []);
             
             // Create entries for each combination
             for (const domain of (matchingDomains.length > 0 ? matchingDomains : [null])) {
@@ -861,7 +861,6 @@ export default function CompanyDetails() {
                     company_id: id,
                     name: law.name,
                     description: law.description,
-                    country: law.country,
                     source: law.source,
                     domain_id: domain?.id || null,
                     activity_id: activity?.id || null,
