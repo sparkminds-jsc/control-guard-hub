@@ -31,10 +31,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Edit, Eye, Search, Filter } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { Badge } from "@/components/ui/badge";
 
 export default function CompanyDetails() {
   const { id } = useParams();
@@ -67,6 +68,24 @@ export default function CompanyDetails() {
   });
   const [loading, setLoading] = useState(false);
   const [lawsAndRegulations, setLawsAndRegulations] = useState<any[]>([]);
+  
+  // Pagination and filtering state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterDomain, setFilterDomain] = useState("");
+  const [filterActivity, setFilterActivity] = useState("");
+  const [filterMarket, setFilterMarket] = useState("");
+  const [editingLaw, setEditingLaw] = useState<any>(null);
+  const [editLawForm, setEditLawForm] = useState({
+    name: "",
+    description: "",
+    country: "",
+    source: "",
+    domain_id: "",
+    activity_id: "",
+    market_id: ""
+  });
 
   // Load company data and related domains, activities, markets
   useEffect(() => {
@@ -409,19 +428,147 @@ export default function CompanyDetails() {
     }
   };
 
-  const saveLawsRegulation = () => {
-    // Here you would normally save the laws regulation data
-    console.log("Saving laws regulation:", lawsForm);
-    setShowLawsDialog(false);
-    setLawsForm({
-      domain: "",
-      activity: "",
-      market: "",
-      lawsRegulation: "",
-      detail: "",
-      countryApplied: "",
-      referralSource: ""
+  // Filter and paginate laws and regulations
+  const filteredLaws = lawsAndRegulations.filter(law => {
+    const matchesSearch = searchTerm === "" || 
+      law.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      law.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      law.source.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesDomain = filterDomain === "" || law.domains?.name === filterDomain;
+    const matchesActivity = filterActivity === "" || law.activities?.name === filterActivity;
+    const matchesMarket = filterMarket === "" || law.markets?.name === filterMarket;
+    
+    return matchesSearch && matchesDomain && matchesActivity && matchesMarket;
+  });
+
+  const totalPages = Math.ceil(filteredLaws.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedLaws = filteredLaws.slice(startIndex, startIndex + itemsPerPage);
+
+  const saveLawsRegulation = async () => {
+    try {
+      const domainId = domains.find(d => d.name === lawsForm.domain)?.id;
+      const activityId = activities.find(a => a.name === lawsForm.activity)?.id;
+      const marketId = markets.find(m => m.name === lawsForm.market)?.id;
+
+      const { error } = await supabase
+        .from('laws_and_regulations')
+        .insert({
+          company_id: id,
+          name: lawsForm.lawsRegulation,
+          description: lawsForm.detail,
+          country: lawsForm.countryApplied,
+          source: lawsForm.referralSource,
+          domain_id: domainId || null,
+          activity_id: activityId || null,
+          market_id: marketId || null
+        });
+
+      if (error) throw error;
+
+      await loadLawsAndRegulations();
+      setShowLawsDialog(false);
+      setLawsForm({
+        domain: "",
+        activity: "",
+        market: "",
+        lawsRegulation: "",
+        detail: "",
+        countryApplied: "",
+        referralSource: ""
+      });
+
+      toast({
+        title: "Added Successfully",
+        description: "Laws and regulation has been added successfully.",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    } catch (error) {
+      console.error('Error adding law:', error);
+      toast({
+        title: "Add Failed",
+        description: "Failed to add laws and regulation. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    }
+  };
+
+  const handleEditLaw = (law: any) => {
+    setEditingLaw(law);
+    setEditLawForm({
+      name: law.name,
+      description: law.description,
+      country: law.country,
+      source: law.source,
+      domain_id: law.domain_id || "",
+      activity_id: law.activity_id || "",
+      market_id: law.market_id || ""
     });
+  };
+
+  const saveEditLaw = async () => {
+    try {
+      const { error } = await supabase
+        .from('laws_and_regulations')
+        .update({
+          name: editLawForm.name,
+          description: editLawForm.description,
+          country: editLawForm.country,
+          source: editLawForm.source,
+          domain_id: editLawForm.domain_id || null,
+          activity_id: editLawForm.activity_id || null,
+          market_id: editLawForm.market_id || null
+        })
+        .eq('id', editingLaw.id);
+
+      if (error) throw error;
+
+      await loadLawsAndRegulations();
+      setEditingLaw(null);
+
+      toast({
+        title: "Updated Successfully",
+        description: "Laws and regulation has been updated successfully.",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    } catch (error) {
+      console.error('Error updating law:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update laws and regulation. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    }
+  };
+
+  const handleDeleteLaw = async (lawId: string, lawName: string) => {
+    try {
+      const { error } = await supabase
+        .from('laws_and_regulations')
+        .delete()
+        .eq('id', lawId);
+
+      if (error) throw error;
+
+      await loadLawsAndRegulations();
+
+      toast({
+        title: "Deleted Successfully",
+        description: `"${lawName}" has been deleted successfully.`,
+        className: "fixed top-4 right-4 w-auto"
+      });
+    } catch (error) {
+      console.error('Error deleting law:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete laws and regulation. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    }
   };
 
   return (
@@ -686,7 +833,62 @@ export default function CompanyDetails() {
 
       {showLawsRegulations && (
         <Card className="bg-card">
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* Search and Filter Section */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search laws, details, or source..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-card border-border pl-10"
+                />
+              </div>
+              <Select value={filterDomain} onValueChange={setFilterDomain}>
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue placeholder="Filter by Domain" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Domains</SelectItem>
+                  {domains.map((domain) => (
+                    <SelectItem key={domain.id} value={domain.name}>{domain.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterActivity} onValueChange={setFilterActivity}>
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue placeholder="Filter by Activity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Activities</SelectItem>
+                  {activities.map((activity) => (
+                    <SelectItem key={activity.id} value={activity.name}>{activity.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterMarket} onValueChange={setFilterMarket}>
+                <SelectTrigger className="bg-card border-border">
+                  <SelectValue placeholder="Filter by Market" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Markets</SelectItem>
+                  {markets.map((market) => (
+                    <SelectItem key={market.id} value={market.name}>{market.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Statistics */}
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Showing {filteredLaws.length > 0 ? startIndex + 1 : 0}-{Math.min(startIndex + itemsPerPage, filteredLaws.length)} of {filteredLaws.length} results
+              </div>
+              <Badge variant="secondary" className="bg-secondary text-secondary-foreground">
+                Total: {lawsAndRegulations.length} laws
+              </Badge>
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -702,10 +904,10 @@ export default function CompanyDetails() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {lawsAndRegulations.length > 0 ? (
-                  lawsAndRegulations.map((law, index) => (
+                {paginatedLaws.length > 0 ? (
+                  paginatedLaws.map((law, index) => (
                     <TableRow key={law.id}>
-                      <TableCell className="text-card-foreground">{index + 1}</TableCell>
+                      <TableCell className="text-card-foreground">{startIndex + index + 1}</TableCell>
                       <TableCell className="text-card-foreground">
                         {law.domains?.name || 'N/A'}
                       </TableCell>
@@ -725,14 +927,27 @@ export default function CompanyDetails() {
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                            Detail
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="bg-card border-border text-card-foreground hover:bg-accent"
+                          >
+                            <Eye className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                            Edit
+                          <Button 
+                            size="sm" 
+                            className="bg-primary text-primary-foreground hover:bg-primary/90"
+                            onClick={() => handleEditLaw(law)}
+                          >
+                            <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="destructive" className="bg-destructive text-destructive-foreground">
-                            Delete
+                          <Button 
+                            size="sm" 
+                            variant="destructive" 
+                            className="bg-destructive text-destructive-foreground"
+                            onClick={() => handleDeleteLaw(law.id, law.name)}
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -741,12 +956,57 @@ export default function CompanyDetails() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center text-muted-foreground">
-                      No laws and regulations found. Click "Generate Laws and Regulation" to get started.
+                      {searchTerm || filterDomain || filterActivity || filterMarket 
+                        ? "No matching laws and regulations found." 
+                        : "No laws and regulations found. Click \"Generate Laws and Regulation\" to get started."}
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                    className="bg-card border-border text-card-foreground hover:bg-accent"
+                  >
+                    Previous
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className={currentPage === page 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-card border-border text-card-foreground hover:bg-accent"
+                      }
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage >= totalPages}
+                    className="bg-card border-border text-card-foreground hover:bg-accent"
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -896,6 +1156,129 @@ export default function CompanyDetails() {
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Laws and Regulation Dialog */}
+      <Dialog open={editingLaw !== null} onOpenChange={(open) => !open && setEditingLaw(null)}>
+        <DialogContent className="bg-card border-border max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">Edit Laws and Regulation</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Domain</Label>
+                <Select 
+                  value={editLawForm.domain_id} 
+                  onValueChange={(value) => setEditLawForm({ ...editLawForm, domain_id: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select domain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Domain</SelectItem>
+                    {domains.map((domain) => (
+                      <SelectItem key={domain.id} value={domain.id}>{domain.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Activity</Label>
+                <Select 
+                  value={editLawForm.activity_id} 
+                  onValueChange={(value) => setEditLawForm({ ...editLawForm, activity_id: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select activity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Activity</SelectItem>
+                    {activities.map((activity) => (
+                      <SelectItem key={activity.id} value={activity.id}>{activity.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Market</Label>
+                <Select 
+                  value={editLawForm.market_id} 
+                  onValueChange={(value) => setEditLawForm({ ...editLawForm, market_id: value })}
+                >
+                  <SelectTrigger className="bg-card border-border">
+                    <SelectValue placeholder="Select market" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Market</SelectItem>
+                    {markets.map((market) => (
+                      <SelectItem key={market.id} value={market.id}>{market.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label className="text-card-foreground font-medium">Laws and Regulation</Label>
+              <Textarea
+                value={editLawForm.name}
+                onChange={(e) => setEditLawForm({ ...editLawForm, name: e.target.value })}
+                placeholder="Enter laws and regulation"
+                className="bg-card border-border"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label className="text-card-foreground font-medium">Detail</Label>
+              <Textarea
+                value={editLawForm.description}
+                onChange={(e) => setEditLawForm({ ...editLawForm, description: e.target.value })}
+                placeholder="Enter detail"
+                className="bg-card border-border"
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-card-foreground font-medium">Country Applied</Label>
+                <Input
+                  value={editLawForm.country}
+                  onChange={(e) => setEditLawForm({ ...editLawForm, country: e.target.value })}
+                  placeholder="Enter country applied"
+                  className="bg-card border-border"
+                />
+              </div>
+              <div>
+                <Label className="text-card-foreground font-medium">Referral Source</Label>
+                <Textarea
+                  value={editLawForm.source}
+                  onChange={(e) => setEditLawForm({ ...editLawForm, source: e.target.value })}
+                  placeholder="Enter referral source"
+                  className="bg-card border-border"
+                  rows={2}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setEditingLaw(null)}
+              className="bg-card border-border text-card-foreground hover:bg-accent"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={saveEditLaw}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Update
             </Button>
           </DialogFooter>
         </DialogContent>
