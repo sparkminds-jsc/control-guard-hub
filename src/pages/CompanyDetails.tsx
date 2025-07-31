@@ -198,12 +198,12 @@ export default function CompanyDetails() {
       loadCompanyData();
       const cleanup = setupRealtimeSubscription();
       
-      // Check if user is coming back from control framework detail
+      // Check if user is coming back from control framework detail or law regulation detail
       const urlParams = new URLSearchParams(window.location.search);
       const fromDetail = urlParams.get('fromDetail');
       
-      if (fromDetail === 'control-framework') {
-        // Show all sections when coming back from control framework detail
+      if (fromDetail === 'control-framework' || fromDetail === 'law-regulation') {
+        // Show all sections when coming back from detail pages
         setShowDetails(true);
         setShowLawsRegulations(true);
         setShowControlFramework(true);
@@ -1520,6 +1520,7 @@ export default function CompanyDetails() {
                             size="sm" 
                             variant="outline"
                             className="bg-card border-border text-card-foreground hover:bg-accent"
+                            onClick={() => navigate(`/law-regulation/${law.id}?returnTo=${encodeURIComponent(window.location.pathname)}`)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
