@@ -21,11 +21,24 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Trash2, Plus } from "lucide-react";
 import { useParams } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function CompanyDetails() {
   const { id } = useParams();
+  const { toast } = useToast();
   const [showDetails, setShowDetails] = useState(false);
   const [showLawsRegulations, setShowLawsRegulations] = useState(false);
   const [company, setCompany] = useState<any>(null);
@@ -37,6 +50,12 @@ export default function CompanyDetails() {
   const [newItemValue, setNewItemValue] = useState("");
   const [isEditingDuns, setIsEditingDuns] = useState(false);
   const [tempDunsNumber, setTempDunsNumber] = useState("");
+  const [deleteDialog, setDeleteDialog] = useState({ 
+    isOpen: false, 
+    type: "", 
+    id: "", 
+    name: "" 
+  });
   const [lawsForm, setLawsForm] = useState({
     domain: "",
     activity: "",
@@ -98,46 +117,67 @@ export default function CompanyDetails() {
     }
   };
 
-  const removeDomain = async (domainId: string) => {
-    try {
-      const { error } = await supabase
-        .from('domains')
-        .delete()
-        .eq('id', domainId);
-      
-      if (error) throw error;
-      setDomains(domains.filter(d => d.id !== domainId));
-    } catch (error) {
-      console.error('Error removing domain:', error);
-    }
+  const handleDeleteClick = (type: string, id: string, name: string) => {
+    setDeleteDialog({
+      isOpen: true,
+      type,
+      id,
+      name
+    });
   };
 
-  const removeActivity = async (activityId: string) => {
+  const confirmDelete = async () => {
     try {
-      const { error } = await supabase
-        .from('activities')
-        .delete()
-        .eq('id', activityId);
+      let error;
+      
+      if (deleteDialog.type === 'domain') {
+        ({ error } = await supabase
+          .from('domains')
+          .delete()
+          .eq('id', deleteDialog.id));
+        
+        if (!error) {
+          setDomains(domains.filter(d => d.id !== deleteDialog.id));
+        }
+      } else if (deleteDialog.type === 'activity') {
+        ({ error } = await supabase
+          .from('activities')
+          .delete()
+          .eq('id', deleteDialog.id));
+        
+        if (!error) {
+          setActivities(activities.filter(a => a.id !== deleteDialog.id));
+        }
+      } else if (deleteDialog.type === 'market') {
+        ({ error } = await supabase
+          .from('markets')
+          .delete()
+          .eq('id', deleteDialog.id));
+        
+        if (!error) {
+          setMarkets(markets.filter(m => m.id !== deleteDialog.id));
+        }
+      }
       
       if (error) throw error;
-      setActivities(activities.filter(a => a.id !== activityId));
-    } catch (error) {
-      console.error('Error removing activity:', error);
-    }
-  };
-
-  const removeMarket = async (marketId: string) => {
-    try {
-      const { error } = await supabase
-        .from('markets')
-        .delete()
-        .eq('id', marketId);
       
-      if (error) throw error;
-      setMarkets(markets.filter(m => m.id !== marketId));
+      toast({
+        title: "Xóa thành công",
+        description: `${deleteDialog.name} đã được xóa khỏi danh sách.`,
+        className: "fixed top-4 right-4 w-auto"
+      });
+      
     } catch (error) {
-      console.error('Error removing market:', error);
+      console.error('Error deleting item:', error);
+      toast({
+        title: "Xóa thất bại",
+        description: "Có lỗi xảy ra khi xóa. Vui lòng thử lại.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
     }
+    
+    setDeleteDialog({ isOpen: false, type: "", id: "", name: "" });
   };
 
   const handleAddItem = (type: string) => {
@@ -348,7 +388,7 @@ export default function CompanyDetails() {
                       size="icon"
                       variant="destructive"
                       className="bg-destructive text-destructive-foreground h-8 w-8"
-                      onClick={() => removeDomain(domain.id)}
+                      onClick={() => handleDeleteClick('domain', domain.id, domain.name)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -395,7 +435,7 @@ export default function CompanyDetails() {
                       size="icon"
                       variant="destructive"
                       className="bg-destructive text-destructive-foreground h-8 w-8"
-                      onClick={() => removeActivity(activity.id)}
+                      onClick={() => handleDeleteClick('activity', activity.id, activity.name)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -442,7 +482,7 @@ export default function CompanyDetails() {
                       size="icon"
                       variant="destructive"
                       className="bg-destructive text-destructive-foreground h-8 w-8"
-                      onClick={() => removeMarket(market.id)}
+                      onClick={() => handleDeleteClick('market', market.id, market.name)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -680,6 +720,33 @@ export default function CompanyDetails() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialog.isOpen} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, isOpen: open })}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-card-foreground">
+              Xác nhận xóa
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Bạn có chắc chắn muốn xóa "{deleteDialog.name}" không? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-card border-border text-card-foreground hover:bg-accent">
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Toaster />
     </div>
   );
 }
