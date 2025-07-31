@@ -103,9 +103,11 @@ export default function GenerateControlFramework() {
       
       // If API returns domains, activities, markets data, save them to respective tables
       if (company && apiData) {
-        // Save domains if provided
-        if (apiData.domains && Array.isArray(apiData.domains)) {
-          const domainsToInsert = apiData.domains.map((domain: any) => ({
+        // Save domains if provided (check both 'domains' and 'businessDomain' fields)
+        if ((apiData.domains && Array.isArray(apiData.domains)) || 
+            (apiData.businessDomain && Array.isArray(apiData.businessDomain))) {
+          const domainsData = apiData.domains || apiData.businessDomain;
+          const domainsToInsert = domainsData.map((domain: any) => ({
             company_id: company.id,
             name: typeof domain === 'string' ? domain : domain.name
           }));
