@@ -79,7 +79,7 @@ export default function GenerateControlFramework() {
       setLoading(true);
       
       // Call API to external service
-      const response = await fetch(`https://n8n.sparkminds.net/webhook-test/6812a814-9d51-43e1-aff8-46bd1b01d4de?websiteUrl=${encodeURIComponent(formData.websiteUrl)}&companyName=${encodeURIComponent(formData.companyName)}`);
+      const response = await fetch(`https://n8n.sparkminds.net/webhook/6812a814-9d51-43e1-aff8-46bd1b01d4de?websiteUrl=${encodeURIComponent(formData.websiteUrl)}&companyName=${encodeURIComponent(formData.companyName)}`);
       const apiData = await response.json();
       
       console.log('API Response:', apiData);
