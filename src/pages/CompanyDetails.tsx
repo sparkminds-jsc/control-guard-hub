@@ -1079,10 +1079,24 @@ export default function CompanyDetails() {
     try {
       setApiLoading(true);
       
-      // Update all control frameworks to set isverify = true
+      // Get all control framework IDs for this company
+      const controlFrameworkIds = controlFrameworks.map(cf => cf.id);
+      
+      if (controlFrameworkIds.length === 0) {
+        toast({
+          title: "No Control Frameworks",
+          description: "No control frameworks found to submit.",
+          variant: "destructive",
+          className: "fixed top-4 right-4 w-auto"
+        });
+        return;
+      }
+      
+      // Update only control frameworks for this company
       const { error } = await supabase
         .from('control_framework')
-        .update({ isverify: true } as any);
+        .update({ isverify: true } as any)
+        .in('id', controlFrameworkIds);
       
       if (error) throw error;
       
