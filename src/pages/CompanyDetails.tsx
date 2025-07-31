@@ -79,6 +79,7 @@ export default function CompanyDetails() {
     referralSource: ""
   });
   const [loading, setLoading] = useState(false);
+  const [apiLoading, setApiLoading] = useState(false);
   const [lawsAndRegulations, setLawsAndRegulations] = useState<any[]>([]);
   
   // Pagination and filtering state
@@ -246,6 +247,7 @@ export default function CompanyDetails() {
 
   const loadCompanyData = async () => {
     try {
+      setApiLoading(true);
       // Load company basic info
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
@@ -291,6 +293,8 @@ export default function CompanyDetails() {
 
     } catch (error) {
       console.error('Error loading company data:', error);
+    } finally {
+      setApiLoading(false);
     }
   };
 
@@ -989,6 +993,7 @@ export default function CompanyDetails() {
 
   const saveControlFramework = async () => {
     try {
+      setApiLoading(true);
       if (!controlFrameworkForm.context.trim()) {
         toast({
           title: "Validation Error",
@@ -996,6 +1001,7 @@ export default function CompanyDetails() {
           variant: "destructive",
           className: "fixed top-4 right-4 w-auto"
         });
+        setApiLoading(false);
         return;
       }
 
@@ -1043,6 +1049,8 @@ export default function CompanyDetails() {
         variant: "destructive",
         className: "fixed top-4 right-4 w-auto"
       });
+    } finally {
+      setApiLoading(false);
     }
   };
 
@@ -2651,6 +2659,18 @@ export default function CompanyDetails() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Global API Loading Overlay */}
+      {apiLoading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card p-6 rounded-lg shadow-lg">
+            <div className="flex items-center space-x-3">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="text-card-foreground">Processing...</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Toaster />
     </div>
