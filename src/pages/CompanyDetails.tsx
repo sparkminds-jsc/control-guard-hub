@@ -570,44 +570,35 @@ export default function CompanyDetails() {
       const result = await response.json();
       
       // Save control framework to database
-      if (result.control_framework && Array.isArray(result.control_framework)) {
+      if (result.controlFramework && Array.isArray(result.controlFramework)) {
         const controlFrameworksToInsert = [];
         
-        for (const cf of result.control_framework) {
-          // Find matching domains, activities, markets, laws
-          const matchingDomains = domains.filter(d => 
-            cf.domain && cf.domain.includes(d.name)
+        for (const cf of result.controlFramework) {
+          // Find matching domains, activities, markets, laws based on actual response structure
+          const matchingDomain = domains.find(d => 
+            cf.bussinessDomain && d.name === cf.bussinessDomain
           );
-          const matchingActivities = activities.filter(a => 
-            cf.activities && cf.activities.includes(a.name)
+          const matchingActivity = activities.find(a => 
+            cf.activities && a.name === cf.activities
           );
-          const matchingMarkets = markets.filter(m => 
-            cf.markets && cf.markets.includes(m.name)
+          const matchingMarket = markets.find(m => 
+            cf.markets && m.name === cf.markets
           );
-          const matchingLaws = lawsAndRegulations.filter(l => 
-            cf.laws_and_regulations && cf.laws_and_regulations.includes(l.name)
+          const matchingLaw = lawsAndRegulations.find(l => 
+            cf.regulations && l.name === cf.regulations
           );
           
-          // Create entries for each combination
-          for (const domain of (matchingDomains.length > 0 ? matchingDomains : [null])) {
-            for (const activity of (matchingActivities.length > 0 ? matchingActivities : [null])) {
-              for (const market of (matchingMarkets.length > 0 ? matchingMarkets : [null])) {
-                for (const law of (matchingLaws.length > 0 ? matchingLaws : [null])) {
-                  controlFrameworksToInsert.push({
-                    context: cf.context || '',
-                    description: cf.description || '',
-                    id_domain: domain?.id || null,
-                    id_activities: activity?.id || null,
-                    id_markets: market?.id || null,
-                    id_laws_and_regulations: law?.id || null,
-                    countryapplied: cf.countryApplied || '',
-                    riskmanagement: cf.riskManagement || '',
-                    referralsource: cf.referralSource || ''
-                  });
-                }
-              }
-            }
-          }
+          controlFrameworksToInsert.push({
+            context: cf.context || '',
+            description: cf.description || '',
+            id_domain: matchingDomain?.id || null,
+            id_activities: matchingActivity?.id || null,
+            id_markets: matchingMarket?.id || null,
+            id_laws_and_regulations: matchingLaw?.id || null,
+            countryapplied: cf.countryApplied || '',
+            riskmanagement: cf.riskManagement || '',
+            referralsource: cf.referralSource || ''
+          });
         }
         
         if (controlFrameworksToInsert.length > 0) {
@@ -615,7 +606,12 @@ export default function CompanyDetails() {
             .from('control_framework')
             .insert(controlFrameworksToInsert);
           
-          if (insertError) throw insertError;
+          if (insertError) {
+            console.error('Insert error:', insertError);
+            throw insertError;
+          }
+          
+          console.log('Successfully inserted', controlFrameworksToInsert.length, 'control frameworks');
         }
         
         // Reload control frameworks
