@@ -73,6 +73,80 @@ export type Database = {
         }
         Relationships: []
       }
+      control_framework: {
+        Row: {
+          context: string | null
+          countryapplied: string | null
+          created_at: string
+          description: string | null
+          id: string
+          id_activities: string | null
+          id_domain: string | null
+          id_laws_and_regulations: string | null
+          id_markets: string | null
+          referralsource: string | null
+          riskmanagement: string | null
+          updated_at: string
+        }
+        Insert: {
+          context?: string | null
+          countryapplied?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          id_activities?: string | null
+          id_domain?: string | null
+          id_laws_and_regulations?: string | null
+          id_markets?: string | null
+          referralsource?: string | null
+          riskmanagement?: string | null
+          updated_at?: string
+        }
+        Update: {
+          context?: string | null
+          countryapplied?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          id_activities?: string | null
+          id_domain?: string | null
+          id_laws_and_regulations?: string | null
+          id_markets?: string | null
+          referralsource?: string | null
+          riskmanagement?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "control_framework_id_activities_fkey"
+            columns: ["id_activities"]
+            isOneToOne: false
+            referencedRelation: "activities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "control_framework_id_domain_fkey"
+            columns: ["id_domain"]
+            isOneToOne: false
+            referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "control_framework_id_laws_and_regulations_fkey"
+            columns: ["id_laws_and_regulations"]
+            isOneToOne: false
+            referencedRelation: "laws_and_regulations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "control_framework_id_markets_fkey"
+            columns: ["id_markets"]
+            isOneToOne: false
+            referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domains: {
         Row: {
           company_id: string
