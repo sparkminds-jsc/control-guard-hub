@@ -90,9 +90,7 @@ export default function GenerateControlFramework() {
         website_url: formData.websiteUrl,
         duns_number: formData.dunsNumber || null,
         // Store additional data from API response if available
-        country: apiData.country || null,
-        // Add other fields from API response as needed
-        ...apiData
+        country: apiData.country || null
       };
 
       const { data: company, error } = await supabase

@@ -48,37 +48,28 @@ export type Database = {
       }
       companies: {
         Row: {
-          activities: string[] | null
           country: string | null
           created_at: string
-          domains: string[] | null
           duns_number: string | null
           id: string
-          markets: string[] | null
           name: string
           updated_at: string
           website_url: string | null
         }
         Insert: {
-          activities?: string[] | null
           country?: string | null
           created_at?: string
-          domains?: string[] | null
           duns_number?: string | null
           id?: string
-          markets?: string[] | null
           name: string
           updated_at?: string
           website_url?: string | null
         }
         Update: {
-          activities?: string[] | null
           country?: string | null
           created_at?: string
-          domains?: string[] | null
           duns_number?: string | null
           id?: string
-          markets?: string[] | null
           name?: string
           updated_at?: string
           website_url?: string | null
