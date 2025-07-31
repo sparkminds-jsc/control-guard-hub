@@ -844,9 +844,9 @@ export default function CompanyDetails() {
               : law.bussinessDomain ? [law.bussinessDomain] : [];
             
             // Parse activities - handle both string and array  
-            const lawActivities = Array.isArray(law.actitivities)
-              ? law.actitivities
-              : law.actitivities ? [law.actitivities] : [];
+            const lawActivities = Array.isArray(law.activities)
+              ? law.activities
+              : law.activities ? [law.activities] : [];
             
             // Parse markets - handle both string and array
             const lawMarkets = Array.isArray(law.markets)
