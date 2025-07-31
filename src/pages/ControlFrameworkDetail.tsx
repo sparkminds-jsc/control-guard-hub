@@ -15,6 +15,10 @@ export default function ControlFrameworkDetail() {
   const [controlFramework, setControlFramework] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Get return URL from query params
+  const urlParams = new URLSearchParams(window.location.search);
+  const returnTo = urlParams.get('returnTo');
+
   useEffect(() => {
     loadControlFrameworkDetail();
   }, [id]);
@@ -55,7 +59,13 @@ export default function ControlFrameworkDetail() {
           <div className="flex items-center gap-4 mb-6">
             <Button 
               variant="outline" 
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (returnTo) {
+                  navigate(`${returnTo}?fromDetail=control-framework`);
+                } else {
+                  navigate(-1);
+                }
+              }}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -75,7 +85,13 @@ export default function ControlFrameworkDetail() {
           <div className="flex items-center gap-4 mb-6">
             <Button 
               variant="outline" 
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (returnTo) {
+                  navigate(`${returnTo}?fromDetail=control-framework`);
+                } else {
+                  navigate(-1);
+                }
+              }}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -95,7 +111,13 @@ export default function ControlFrameworkDetail() {
         <div className="flex items-center gap-4 mb-6">
           <Button 
             variant="outline" 
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (returnTo) {
+                navigate(`${returnTo}?fromDetail=control-framework`);
+              } else {
+                navigate(-1);
+              }
+            }}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -260,7 +282,16 @@ export default function ControlFrameworkDetail() {
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-4 pt-4">
-              <Button variant="outline" onClick={() => navigate(-1)}>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  if (returnTo) {
+                    navigate(`${returnTo}?fromDetail=control-framework`);
+                  } else {
+                    navigate(-1);
+                  }
+                }}
+              >
                 Back to History
               </Button>
               <Button className="bg-primary text-primary-foreground hover:bg-primary/90">

@@ -197,6 +197,21 @@ export default function CompanyDetails() {
     if (id) {
       loadCompanyData();
       const cleanup = setupRealtimeSubscription();
+      
+      // Check if user is coming back from control framework detail
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromDetail = urlParams.get('fromDetail');
+      
+      if (fromDetail === 'control-framework') {
+        // Show all sections when coming back from control framework detail
+        setShowDetails(true);
+        setShowLawsRegulations(true);
+        setShowControlFramework(true);
+        
+        // Clean up the URL parameter
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+      
       return cleanup;
     }
   }, [id, setupRealtimeSubscription]);
@@ -1743,7 +1758,7 @@ export default function CompanyDetails() {
                             size="sm" 
                             variant="outline"
                             className="bg-card border-border text-card-foreground hover:bg-accent"
-                            onClick={() => navigate(`/control-framework/${cf.id}`)}
+                            onClick={() => navigate(`/control-framework/${cf.id}?returnTo=${encodeURIComponent(window.location.pathname)}`)}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
