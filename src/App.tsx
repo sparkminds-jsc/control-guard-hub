@@ -12,6 +12,8 @@ import CompanyInfoFeedback from "./pages/CompanyInfoFeedback";
 import CompanyLawsFeedback from "./pages/CompanyLawsFeedback";
 import CompanyControlFeedback from "./pages/CompanyControlFeedback";
 import CompanyDetails from "./pages/CompanyDetails";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import ControlFrameworkDetail from "./pages/ControlFrameworkDetail";
 import LawRegulationDetail from "./pages/LawRegulationDetail";
 import NotFound from "./pages/NotFound";
@@ -40,6 +42,8 @@ const App = () => (
             <Route path="/company/:companyId/control-frameworks" element={<ControlFrameworkHistory />} />
             <Route path="/control-framework/:id" element={<ControlFrameworkDetail />} />
             <Route path="/law-regulation/:id" element={<LawRegulationDetail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
               </main>
