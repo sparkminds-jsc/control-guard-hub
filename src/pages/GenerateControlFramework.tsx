@@ -316,6 +316,22 @@ export default function GenerateControlFramework() {
       // Reload companies list to show the new company
       await loadCompanies();
       
+      // Check if this is the only company and auto-set as current
+      const { data: allCompanies, error: checkError } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('status', 'active');
+
+      if (!checkError && allCompanies && allCompanies.length === 1 && user?.email) {
+        // Auto-set as current company if it's the only one
+        await supabase
+          .from('users')
+          .update({ id_company: company.id })
+          .eq('email', user.email);
+        
+        setCurrentUserCompanyId(company.id);
+      }
+      
       // Show success toast
       toast({
         title: "Company Added Successfully",
