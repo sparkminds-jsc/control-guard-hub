@@ -713,6 +713,12 @@ export default function CompanyDetails() {
       
       // Save control framework to database
       if (result.controlFramework && Array.isArray(result.controlFramework)) {
+        // Clear existing control frameworks for this company
+        await supabase
+          .from('control_framework')
+          .delete()
+          .eq('company_id', id);
+          
         const controlFrameworksToInsert = [];
         
         for (const cf of result.controlFramework) {
