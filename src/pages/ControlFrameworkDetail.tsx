@@ -33,7 +33,7 @@ export default function ControlFrameworkDetail() {
           domains (name),
           activities (name),
           markets (name),
-          laws_and_regulations (name, description, country, source)
+          laws_and_regulations (name, description, source)
         `)
         .eq('id', id)
         .single();
@@ -195,10 +195,10 @@ export default function ControlFrameworkDetail() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-card-foreground font-medium">Law Country</Label>
+                  <Label className="text-card-foreground font-medium">Market Applied</Label>
                   <div className="p-3 bg-muted rounded-md">
                     <span className="text-muted-foreground">
-                      {controlFramework.laws_and_regulations?.country || 'N/A'}
+                      {controlFramework.markets?.name || 'N/A'}
                     </span>
                   </div>
                 </div>
