@@ -58,6 +58,8 @@ export default function CompanyDetails() {
   const [feedbackText, setFeedbackText] = useState("");
   const [isEditingDuns, setIsEditingDuns] = useState(false);
   const [tempDunsNumber, setTempDunsNumber] = useState("");
+  const [isEditingCountry, setIsEditingCountry] = useState(false);
+  const [tempCountry, setTempCountry] = useState("");
   const [deleteDialog, setDeleteDialog] = useState({ 
     isOpen: false, 
     type: "", 
@@ -815,6 +817,32 @@ export default function CompanyDetails() {
     setTempDunsNumber("");
   };
 
+  const handleEditCountry = () => {
+    setIsEditingCountry(true);
+    setTempCountry(company?.country || "");
+  };
+
+  const saveCountry = async () => {
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ country: tempCountry.trim() || null })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setCompany({ ...company, country: tempCountry.trim() || null });
+      setIsEditingCountry(false);
+    } catch (error) {
+      console.error('Error updating country:', error);
+    }
+  };
+
+  const cancelEditCountry = () => {
+    setIsEditingCountry(false);
+    setTempCountry("");
+  };
+
   const handleGenerateLaws = async () => {
     try {
       setApiLoading(true);
@@ -1236,7 +1264,7 @@ export default function CompanyDetails() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="text-card-foreground font-medium">DUNS Number</Label>
               {isEditingDuns ? (
@@ -1273,10 +1301,49 @@ export default function CompanyDetails() {
                   >
                     Edit
                   </Button>
+                 </div>
+               )}
+             </div>
+             <div>
+              <Label className="text-card-foreground font-medium">Country</Label>
+              {isEditingCountry ? (
+                <div className="flex items-center space-x-2 mt-1">
+                  <Input
+                    value={tempCountry}
+                    onChange={(e) => setTempCountry(e.target.value)}
+                    placeholder="Enter country"
+                    className="bg-card border-border"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={saveCountry}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={cancelEditCountry}
+                    className="bg-card border-border text-card-foreground hover:bg-accent"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 mt-1">
+                  <div className="text-card-foreground">{company?.country || 'N/A'}</div>
+                  <Button
+                    size="sm"
+                    onClick={handleEditCountry}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    Edit
+                  </Button>
                 </div>
               )}
-            </div>
-          </div>
+             </div>
+           </div>
 
           <Button 
             className="bg-primary text-primary-foreground hover:bg-primary/90"
