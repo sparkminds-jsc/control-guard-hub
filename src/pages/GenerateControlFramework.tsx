@@ -121,10 +121,14 @@ export default function GenerateControlFramework() {
 
   const loadCurrentUserCompany = async (userId: string) => {
     try {
+      // First get user's email from the auth session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.email) return;
+
       const { data, error } = await supabase
         .from('users')
         .select('id_company')
-        .eq('email', user?.email)
+        .eq('email', session.user.email)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
