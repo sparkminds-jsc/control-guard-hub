@@ -272,7 +272,7 @@ export default function ControlFrameworkHistory() {
         </div>
 
         {/* Content Area */}
-        <div className="flex gap-6 h-[calc(100vh-280px)]">
+        <div className="flex gap-6 h-[calc(100vh-320px)]">
         {/* Left Panel - Laws List */}
         <div className="w-1/3">
           <Card className="bg-card h-full flex flex-col">
