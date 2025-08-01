@@ -1549,7 +1549,7 @@ export default function CompanyDetails() {
               <Button 
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleGenerateLaws}
-                disabled={loading || lawsAndRegulations.length > 0}
+                disabled={loading}
               >
                 {loading ? "Generating..." : "Generate Laws and Regulation"}
               </Button>
@@ -1773,7 +1773,7 @@ export default function CompanyDetails() {
               <Button 
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleGenerateControlFramework}
-                disabled={loading || controlFrameworkGenerated}
+                disabled={loading}
               >
                 {loading ? (
                   <>
