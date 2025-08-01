@@ -272,7 +272,7 @@ export default function ControlFrameworkHistory() {
         </div>
 
         {/* Content Area */}
-        <div className="flex gap-6 h-[calc(100vh-320px)]">
+        <div className="flex gap-6 h-[calc(100vh-360px)]">
         {/* Left Panel - Laws List */}
         <div className="w-1/3">
           <Card className="bg-card h-full flex flex-col">
@@ -394,19 +394,19 @@ export default function ControlFrameworkHistory() {
                       className="w-full"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-h-0">
                     <label className="block text-sm font-medium text-card-foreground mb-1">Description</label>
                     <Textarea 
                       name="description"
                       defaultValue={currentFramework.description || ''}
-                      className="w-full h-32 resize-none"
+                      className="w-full h-24 resize-none"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between mt-6">
+              <div className="flex justify-between mt-4 pt-4 border-t">
                 <Button 
                   variant="outline"
                   disabled={selectedFramework === 0}
