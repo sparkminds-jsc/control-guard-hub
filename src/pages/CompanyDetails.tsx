@@ -985,7 +985,8 @@ export default function CompanyDetails() {
                     source: law.source,
                     domain_id: domain?.id || null,
                     activity_id: activity?.id || null,
-                    market_id: market?.id || null
+                    market_id: market?.id || null,
+                    country_applied: law.countryApplied || null
                   });
                 }
               }
