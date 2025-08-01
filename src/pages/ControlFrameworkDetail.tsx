@@ -74,7 +74,8 @@ export default function ControlFrameworkDetail() {
 
       if (error) throw error;
 
-      setControlFramework(editedFramework);
+      // Reload the complete data from database after successful update
+      await loadControlFrameworkDetail();
       setIsEditing(false);
       
       toast({
