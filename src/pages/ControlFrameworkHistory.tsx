@@ -244,7 +244,6 @@ export default function ControlFrameworkHistory() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-2xl font-bold text-card-foreground">Control Framework History</h1>
           </div>
           <div className="flex space-x-2">
             <Button 
@@ -279,7 +278,7 @@ export default function ControlFrameworkHistory() {
           <Card className="bg-card h-full flex flex-col">
             <CardHeader className="flex-shrink-0">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-card-foreground font-bold">Control Frameworks</CardTitle>
+                <CardTitle className="text-card-foreground font-bold">Laws and Regulations</CardTitle>
                 <div className="text-sm text-muted-foreground">
                   {controlFrameworks.length} total
                 </div>
