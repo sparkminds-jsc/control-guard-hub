@@ -810,8 +810,20 @@ export default function CompanyDetails() {
       
       setCompany({ ...company, duns_number: tempDunsNumber.trim() || null });
       setIsEditingDuns(false);
+      
+      toast({
+        title: "DUNS Number Updated",
+        description: "DUNS number has been successfully updated.",
+        className: "fixed top-4 right-4 w-auto"
+      });
     } catch (error) {
       console.error('Error updating DUNS number:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update DUNS number. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
     }
   };
 
@@ -836,8 +848,20 @@ export default function CompanyDetails() {
       
       setCompany({ ...company, country: tempCountry.trim() || null });
       setIsEditingCountry(false);
+      
+      toast({
+        title: "Country Updated",
+        description: "Country has been successfully updated.",
+        className: "fixed top-4 right-4 w-auto"
+      });
     } catch (error) {
       console.error('Error updating country:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update country. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
     }
   };
 
