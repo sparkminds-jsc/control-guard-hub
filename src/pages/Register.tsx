@@ -49,13 +49,12 @@ const Register = () => {
       }
 
       if (authData.user) {
-        // Then create user record in our users table
+        // Then create user record in our users table (without password)
         const { error: userError } = await supabase
           .from('users')
           .insert([
             {
               email: data.email,
-              password: data.password, // Note: In production, don't store plain text passwords
               full_name: data.fullname,
               phone: data.phone,
             }
