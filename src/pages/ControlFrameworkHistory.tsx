@@ -207,7 +207,7 @@ export default function ControlFrameworkHistory() {
   const currentFramework = controlFrameworks[selectedFramework];
 
   return (
-    <div className="flex-1 p-6 bg-white min-h-screen">
+    <div className="flex-1 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
@@ -218,6 +218,7 @@ export default function ControlFrameworkHistory() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
+          <h1 className="text-2xl font-bold text-card-foreground">Control Framework History</h1>
         </div>
         <div className="flex space-x-2">
           <Button 
