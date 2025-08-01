@@ -65,6 +65,14 @@ export default {
 				header: {
 					DEFAULT: 'hsl(var(--header-background))',
 					foreground: 'hsl(var(--header-foreground))'
+				},
+				dialog: {
+					DEFAULT: 'hsl(var(--dialog-background))',
+					foreground: 'hsl(var(--dialog-foreground))'
+				},
+				toast: {
+					DEFAULT: 'hsl(var(--toast-background))',
+					foreground: 'hsl(var(--toast-foreground))'
 				}
 			},
 			fontFamily: {

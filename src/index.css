@@ -55,6 +55,12 @@ All colors MUST be HSL.
     /* Header - Clean white background */
     --header-background: 0 0% 100%; /* White header */
     --header-foreground: 0 0% 0%; /* Black text for better contrast */
+
+    /* Dialog and Toast backgrounds */
+    --dialog-background: 215 28% 17%; /* Dark blue like sidebar */
+    --dialog-foreground: 0 0% 100%; /* White text */
+    --toast-background: 215 28% 17%; /* Dark blue like sidebar */
+    --toast-foreground: 0 0% 100%; /* White text */
   }
 
   .dark {
@@ -93,6 +99,12 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Dialog and Toast for dark mode */
+    --dialog-background: 217.2 32.6% 17.5%;
+    --dialog-foreground: 210 40% 98%;
+    --toast-background: 217.2 32.6% 17.5%;
+    --toast-foreground: 210 40% 98%;
   }
 }
 
