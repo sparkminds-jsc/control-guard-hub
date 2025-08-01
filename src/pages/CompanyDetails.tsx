@@ -847,17 +847,75 @@ export default function CompanyDetails() {
 
   const confirmDeleteCompany = async () => {
     try {
-      // Delete all related data first
-      await supabase.from('control_framework').delete().eq('company_id', id);
-      await supabase.from('laws_and_regulations').delete().eq('company_id', id);
-      await supabase.from('domains').delete().eq('company_id', id);
-      await supabase.from('activities').delete().eq('company_id', id);
-      await supabase.from('markets').delete().eq('company_id', id);
+      // Delete in correct order to avoid foreign key constraint violations
       
-      // Delete the company
-      const { error } = await supabase.from('companies').delete().eq('id', id);
+      // 1. Delete control_framework first (it references other tables)
+      const { error: cfError } = await supabase
+        .from('control_framework')
+        .delete()
+        .eq('company_id', id);
       
-      if (error) throw error;
+      if (cfError) {
+        console.error('Error deleting control frameworks:', cfError);
+        throw cfError;
+      }
+      
+      // 2. Delete laws_and_regulations
+      const { error: lawsError } = await supabase
+        .from('laws_and_regulations')
+        .delete()
+        .eq('company_id', id);
+      
+      if (lawsError) {
+        console.error('Error deleting laws and regulations:', lawsError);
+        throw lawsError;
+      }
+      
+      // 3. Delete domains, activities, markets in parallel (no dependencies between them)
+      const [domainsResult, activitiesResult, marketsResult] = await Promise.allSettled([
+        supabase.from('domains').delete().eq('company_id', id),
+        supabase.from('activities').delete().eq('company_id', id),
+        supabase.from('markets').delete().eq('company_id', id)
+      ]);
+      
+      // Check for errors in parallel deletions
+      if (domainsResult.status === 'rejected') {
+        console.error('Error deleting domains:', domainsResult.reason);
+        throw domainsResult.reason;
+      }
+      if (domainsResult.status === 'fulfilled' && domainsResult.value?.error) {
+        console.error('Error deleting domains:', domainsResult.value.error);
+        throw domainsResult.value.error;
+      }
+      
+      if (activitiesResult.status === 'rejected') {
+        console.error('Error deleting activities:', activitiesResult.reason);
+        throw activitiesResult.reason;
+      }
+      if (activitiesResult.status === 'fulfilled' && activitiesResult.value?.error) {
+        console.error('Error deleting activities:', activitiesResult.value.error);
+        throw activitiesResult.value.error;
+      }
+      
+      if (marketsResult.status === 'rejected') {
+        console.error('Error deleting markets:', marketsResult.reason);
+        throw marketsResult.reason;
+      }
+      if (marketsResult.status === 'fulfilled' && marketsResult.value?.error) {
+        console.error('Error deleting markets:', marketsResult.value.error);
+        throw marketsResult.value.error;
+      }
+      
+      // 4. Finally delete the company
+      const { error: companyError } = await supabase
+        .from('companies')
+        .delete()
+        .eq('id', id);
+      
+      if (companyError) {
+        console.error('Error deleting company:', companyError);
+        throw companyError;
+      }
       
       toast({
         title: "Company Deleted Successfully",
