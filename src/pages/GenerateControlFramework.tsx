@@ -47,7 +47,7 @@ export default function GenerateControlFramework() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [filteredCompanies, setFilteredCompanies] = useState<any[]>([]);
   const [filterValue, setFilterValue] = useState("");
-  const [countryFilter, setCountryFilter] = useState("");
+  const [countryFilter, setCountryFilter] = useState("all");
   const [availableCountries, setAvailableCountries] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -96,7 +96,7 @@ export default function GenerateControlFramework() {
       );
     }
     
-    if (countryFilter.trim() !== "") {
+    if (countryFilter.trim() !== "" && countryFilter !== "all") {
       filtered = filtered.filter(company => 
         company.country?.toLowerCase().includes(countryFilter.toLowerCase())
       );
@@ -403,7 +403,7 @@ export default function GenerateControlFramework() {
                   <SelectValue placeholder="Select Country" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Countries</SelectItem>
+                  <SelectItem value="all">All Countries</SelectItem>
                   {availableCountries.map((country) => (
                     <SelectItem key={country} value={country}>{country}</SelectItem>
                   ))}
@@ -496,7 +496,7 @@ export default function GenerateControlFramework() {
               ) : filteredCompanies.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-card-foreground">
-                    {filterValue || countryFilter ? "No companies found matching filter" : "No companies added yet"}
+                    {filterValue || (countryFilter !== "all") ? "No companies found matching filter" : "No companies added yet"}
                   </TableCell>
                 </TableRow>
               ) : (
