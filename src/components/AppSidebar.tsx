@@ -6,6 +6,7 @@ import {
   Shield,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
 
 import {
   Sidebar,
@@ -21,27 +22,27 @@ import {
 
 const menuItems = [
   {
-    title: "Generate Control Framework",
+    titleKey: "nav.framework",
     url: "/",
     icon: FileText,
   },
   {
-    title: "Control Framework History",
+    titleKey: "nav.history",
     url: "/history",
     icon: History,
   },
   {
-    title: "Company Info Feedback",
+    titleKey: "nav.company_info",
     url: "/company-info",
     icon: Building,
   },
   {
-    title: "Company Laws Feedback",
+    titleKey: "nav.company_laws",
     url: "/company-laws",
     icon: Scale,
   },
   {
-    title: "Company Control Feedback",
+    titleKey: "nav.company_control",
     url: "/company-control",
     icon: Shield,
   },
@@ -51,6 +52,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { t } = useLanguage();
 
   const isCollapsed = state === "collapsed";
 
@@ -65,7 +67,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton asChild className="h-12">
                     <NavLink
                       to={item.url}
@@ -79,7 +81,7 @@ export function AppSidebar() {
                       }
                     >
                       <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
-                      {!isCollapsed && <span className="truncate">{item.title}</span>}
+                      {!isCollapsed && <span className="truncate">{t(item.titleKey)}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { ChevronDown } from "lucide-react";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 export const AppHeader = () => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -47,7 +48,8 @@ export const AppHeader = () => {
       <div className="flex items-center">
         {/* Left side can be used for breadcrumbs or title */}
       </div>
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-4">
+        <LanguageSelector />
         <Avatar className="h-8 w-8">
           <AvatarImage src="/placeholder.svg" alt="User Avatar" />
           <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
