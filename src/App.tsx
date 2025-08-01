@@ -39,8 +39,8 @@ const App = () => (
               <div className="min-h-screen flex w-full relative">
                 <div className="relative">
                   <AppSidebar />
-                  {/* Nút toggle nằm ở giữa đường viền sidebar */}
-                  <SidebarTrigger className="absolute top-1/2 -translate-y-1/2 -right-6 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-4 shadow-xl transition-all duration-300 ease-in-out border-2 border-white" />
+                  {/* Nút toggle nằm ở chính giữa đường viền sidebar */}
+                  <SidebarTrigger className="absolute top-1/2 -translate-y-1/2 -right-3 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-3 shadow-2xl transition-all duration-300 ease-in-out border-2 border-background" />
                 </div>
                 <div className="flex-1 flex flex-col">
                   <AppHeader />
