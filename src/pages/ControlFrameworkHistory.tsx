@@ -398,6 +398,7 @@ export default function ControlFrameworkHistory() {
                     <label className="block text-sm font-medium text-card-foreground mb-1">Context</label>
                     <Input 
                       name="context"
+                      key={`context-${currentFramework.id}`}
                       defaultValue={currentFramework.context || ''}
                       className="w-full"
                     />
@@ -406,6 +407,7 @@ export default function ControlFrameworkHistory() {
                     <label className="block text-sm font-medium text-card-foreground mb-1">Description</label>
                     <Textarea 
                       name="description"
+                      key={`description-${currentFramework.id}`}
                       defaultValue={currentFramework.description || ''}
                       className="w-full h-24 resize-none"
                     />
