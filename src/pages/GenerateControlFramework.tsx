@@ -74,6 +74,7 @@ export default function GenerateControlFramework() {
       const { data, error } = await supabase
         .from('companies')
         .select('*')
+        .eq('status', 'active')  // Only load active companies
         .order('created_at', { ascending: false });
 
       if (error) throw error;

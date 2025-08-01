@@ -53,6 +53,7 @@ export type Database = {
           duns_number: string | null
           id: string
           name: string
+          status: string
           updated_at: string
           website_url: string | null
         }
@@ -62,6 +63,7 @@ export type Database = {
           duns_number?: string | null
           id?: string
           name: string
+          status?: string
           updated_at?: string
           website_url?: string | null
         }
@@ -71,6 +73,7 @@ export type Database = {
           duns_number?: string | null
           id?: string
           name?: string
+          status?: string
           updated_at?: string
           website_url?: string | null
         }

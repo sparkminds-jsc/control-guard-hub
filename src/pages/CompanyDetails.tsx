@@ -847,73 +847,17 @@ export default function CompanyDetails() {
 
   const confirmDeleteCompany = async () => {
     try {
-      // First get all the related entity IDs for this company
-      const [domainsData, activitiesData, marketsData, lawsData] = await Promise.all([
-        supabase.from('domains').select('id').eq('company_id', id),
-        supabase.from('activities').select('id').eq('company_id', id),
-        supabase.from('markets').select('id').eq('company_id', id),
-        supabase.from('laws_and_regulations').select('id').eq('company_id', id)
-      ]);
-
-      const domainIds = domainsData.data?.map(d => d.id) || [];
-      const activityIds = activitiesData.data?.map(a => a.id) || [];
-      const marketIds = marketsData.data?.map(m => m.id) || [];
-      const lawIds = lawsData.data?.map(l => l.id) || [];
-
-      // Delete control_framework records that reference any of these entities
-      const deletePromises = [];
-      
-      if (domainIds.length > 0) {
-        deletePromises.push(
-          supabase.from('control_framework').delete().in('id_domain', domainIds)
-        );
-      }
-      
-      if (activityIds.length > 0) {
-        deletePromises.push(
-          supabase.from('control_framework').delete().in('id_activities', activityIds)
-        );
-      }
-      
-      if (marketIds.length > 0) {
-        deletePromises.push(
-          supabase.from('control_framework').delete().in('id_markets', marketIds)
-        );
-      }
-      
-      if (lawIds.length > 0) {
-        deletePromises.push(
-          supabase.from('control_framework').delete().in('id_laws_and_regulations', lawIds)
-        );
-      }
-
-      // Also delete control_framework records directly linked to company
-      deletePromises.push(
-        supabase.from('control_framework').delete().eq('company_id', id)
-      );
-
-      // Execute all control_framework deletions
-      await Promise.all(deletePromises);
-
-      // Now delete the related entities
-      await Promise.all([
-        supabase.from('laws_and_regulations').delete().eq('company_id', id),
-        supabase.from('domains').delete().eq('company_id', id),
-        supabase.from('activities').delete().eq('company_id', id),
-        supabase.from('markets').delete().eq('company_id', id)
-      ]);
-
-      // Finally delete the company
-      const { error: companyError } = await supabase
+      // Soft delete - just update status to 'deleted'
+      const { error } = await supabase
         .from('companies')
-        .delete()
+        .update({ status: 'deleted' })
         .eq('id', id);
       
-      if (companyError) throw companyError;
+      if (error) throw error;
       
       toast({
         title: "Company Deleted Successfully",
-        description: "The company and all related data have been removed.",
+        description: "The company has been marked as deleted.",
         className: "fixed top-4 right-4 w-auto"
       });
       
