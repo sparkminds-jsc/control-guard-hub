@@ -28,22 +28,22 @@ const Login = () => {
 
       if (error) {
         toast({
-          title: "Lỗi đăng nhập",
+          title: "Login Error",
           description: error.message,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Đăng nhập thành công",
-          description: "Chào mừng bạn quay lại!",
+          title: "Login Successful",
+          description: "Welcome back!",
         });
         // Redirect will be handled by auth state change
         window.location.href = "/";
       }
     } catch (error) {
       toast({
-        title: "Lỗi",
-        description: "Có lỗi xảy ra, vui lòng thử lại.",
+        title: "Error",
+        description: "An error occurred, please try again.",
         variant: "destructive",
       });
     } finally {
@@ -55,9 +55,9 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Đăng nhập</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
           <CardDescription className="text-center">
-            Nhập email và mật khẩu để đăng nhập
+            Enter your email and password to login
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -67,12 +67,12 @@ const Login = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="Nhập email của bạn"
+                placeholder="Enter your email"
                 {...register("email", {
-                  required: "Email là bắt buộc",
+                  required: "Email is required",
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Email không hợp lệ"
+                    message: "Invalid email address"
                   }
                 })}
               />
@@ -82,16 +82,16 @@ const Login = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Mật khẩu</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Nhập mật khẩu của bạn"
+                placeholder="Enter your password"
                 {...register("password", {
-                  required: "Mật khẩu là bắt buộc",
+                  required: "Password is required",
                   minLength: {
                     value: 6,
-                    message: "Mật khẩu phải có ít nhất 6 ký tự"
+                    message: "Password must be at least 6 characters"
                   }
                 })}
               />
@@ -101,18 +101,18 @@ const Login = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+              {isLoading ? "Signing in..." : "Login"}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Chưa có tài khoản?{" "}
+              Don't have an account?{" "}
               <Link 
                 to="/register" 
                 className="font-medium text-primary hover:underline"
               >
-                Tạo tài khoản mới
+                Create new account
               </Link>
             </p>
           </div>

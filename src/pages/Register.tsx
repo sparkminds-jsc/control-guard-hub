@@ -37,7 +37,7 @@ const Register = () => {
 
       if (authError) {
         toast({
-          title: "Lỗi đăng ký",
+          title: "Registration Error",
           description: authError.message,
           variant: "destructive",
         });
@@ -60,8 +60,8 @@ const Register = () => {
         }
 
         toast({
-          title: "Đăng ký thành công",
-          description: "Vui lòng kiểm tra email để xác nhận tài khoản.",
+          title: "Registration Successful",
+          description: "Please check your email to confirm your account.",
         });
         
         // Redirect to login page
@@ -69,8 +69,8 @@ const Register = () => {
       }
     } catch (error) {
       toast({
-        title: "Lỗi",
-        description: "Có lỗi xảy ra, vui lòng thử lại.",
+        title: "Error",
+        description: "An error occurred, please try again.",
         variant: "destructive",
       });
     } finally {
@@ -82,24 +82,28 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Tạo tài khoản</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Create Account</CardTitle>
           <CardDescription className="text-center">
-            Điền thông tin để tạo tài khoản mới
+            Fill in your information to create a new account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="fullname">Họ và tên</Label>
+              <Label htmlFor="fullname">Full Name</Label>
               <Input
                 id="fullname"
                 type="text"
-                placeholder="Nhập họ và tên"
+                placeholder="Enter your full name"
                 {...register("fullname", {
-                  required: "Họ và tên là bắt buộc",
+                  required: "Full name is required",
                   minLength: {
                     value: 2,
-                    message: "Họ và tên phải có ít nhất 2 ký tự"
+                    message: "Full name must be at least 2 characters"
+                  },
+                  pattern: {
+                    value: /^[a-zA-Z\s]+$/,
+                    message: "Full name can only contain letters and spaces"
                   }
                 })}
               />
@@ -109,16 +113,16 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Số điện thoại</Label>
+              <Label htmlFor="phone">Phone Number</Label>
               <Input
                 id="phone"
                 type="tel"
-                placeholder="Nhập số điện thoại"
+                placeholder="Enter your phone number"
                 {...register("phone", {
-                  required: "Số điện thoại là bắt buộc",
+                  required: "Phone number is required",
                   pattern: {
-                    value: /^[0-9]{10,11}$/,
-                    message: "Số điện thoại không hợp lệ (10-11 số)"
+                    value: /^(\+?84|0)[3-9][0-9]{8}$/,
+                    message: "Invalid Vietnamese phone number format"
                   }
                 })}
               />
@@ -132,12 +136,12 @@ const Register = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="Nhập email của bạn"
+                placeholder="Enter your email"
                 {...register("email", {
-                  required: "Email là bắt buộc",
+                  required: "Email is required",
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Email không hợp lệ"
+                    message: "Invalid email address"
                   }
                 })}
               />
@@ -147,16 +151,20 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Mật khẩu</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Nhập mật khẩu"
+                placeholder="Enter your password"
                 {...register("password", {
-                  required: "Mật khẩu là bắt buộc",
+                  required: "Password is required",
                   minLength: {
-                    value: 6,
-                    message: "Mật khẩu phải có ít nhất 6 ký tự"
+                    value: 8,
+                    message: "Password must be at least 8 characters"
+                  },
+                  pattern: {
+                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                    message: "Password must contain at least one uppercase letter, one lowercase letter, and one number"
                   }
                 })}
               />
@@ -166,15 +174,15 @@ const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Nhập lại mật khẩu"
+                placeholder="Confirm your password"
                 {...register("confirmPassword", {
-                  required: "Xác nhận mật khẩu là bắt buộc",
+                  required: "Password confirmation is required",
                   validate: (value) =>
-                    value === password || "Mật khẩu xác nhận không khớp"
+                    value === password || "Passwords do not match"
                 })}
               />
               {errors.confirmPassword && (
@@ -183,18 +191,18 @@ const Register = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
+              {isLoading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Đã có tài khoản?{" "}
+              Already have an account?{" "}
               <Link 
                 to="/login" 
                 className="font-medium text-primary hover:underline"
               >
-                Đăng nhập ngay
+                Sign in now
               </Link>
             </p>
           </div>
