@@ -138,7 +138,8 @@ export default function GenerateControlFramework() {
       const companyData = {
         name: formData.companyName,
         website_url: formData.websiteUrl,
-        duns_number: formData.dunsNumber || null
+        duns_number: formData.dunsNumber || null,
+        country: apiData.country || null
       };
 
       const { data: company, error } = await supabase
