@@ -233,7 +233,7 @@ export default function ControlFrameworkHistory() {
   return (
     <div className="flex-1 p-6">
       {/* Main Content with White Background */}
-      <div className="bg-white rounded-lg shadow-sm p-6 min-h-[calc(100vh-120px)]">
+      <div className="bg-white rounded-lg shadow-sm p-6 min-h-[calc(100vh-80px)]">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
@@ -272,7 +272,7 @@ export default function ControlFrameworkHistory() {
         </div>
 
         {/* Content Area */}
-        <div className="flex gap-6 h-[calc(100vh-380px)]">
+        <div className="flex gap-6 h-[calc(100vh-300px)]">
         {/* Left Panel - Laws List */}
         <div className="w-1/3">
           <Card className="bg-card h-full flex flex-col">
