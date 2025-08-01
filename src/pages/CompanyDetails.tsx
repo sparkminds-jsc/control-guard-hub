@@ -1958,7 +1958,7 @@ export default function CompanyDetails() {
                     onClick={() => navigate(`/company/${id}/control-frameworks`)}
                   >
                     <Eye className="h-4 w-4 mr-2" />
-                    View History
+                    Go to Control Framework
                   </Button>
                   <Button 
                     className="bg-primary text-primary-foreground hover:bg-primary/90"
