@@ -6,7 +6,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import * as XLSX from 'xlsx';
 
 export default function ControlFrameworkHistory() {
   const navigate = useNavigate();
@@ -128,6 +129,29 @@ export default function ControlFrameworkHistory() {
     }
   };
 
+  const handleExportExcel = () => {
+    const exportData = controlFrameworks.map((framework, index) => ({
+      'No.': index + 1,
+      'Law/Regulation': framework.laws_and_regulations?.name || 'N/A',
+      'Domain': framework.domains?.name || 'N/A',
+      'Activity': framework.activities?.name || 'N/A',
+      'Market': framework.markets?.name || 'N/A',
+      'Country Applied': framework.countryapplied || 'N/A',
+      'Risk Management': framework.riskmanagement || 'N/A',
+      'Referral Source': framework.referralsource || 'N/A',
+      'Context': framework.context || 'N/A',
+      'Description': framework.description || 'N/A',
+      'Created At': framework.created_at ? new Date(framework.created_at).toLocaleDateString() : 'N/A'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Control Frameworks');
+    
+    const fileName = `Control_Frameworks_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
+
   if (loading) {
     return (
       <div className="flex-1 p-6">
@@ -208,38 +232,48 @@ export default function ControlFrameworkHistory() {
 
   return (
     <div className="flex-1 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => navigate('/')}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-2xl font-bold text-card-foreground">Control Framework History</h1>
+      {/* Main Content with White Background */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-bold text-card-foreground">Control Framework History</h1>
+          </div>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline"
+              onClick={handleExportExcel}
+              disabled={controlFrameworks.length === 0}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Excel
+            </Button>
+            <Button 
+              onClick={handleSaveChanges}
+              disabled={updating}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {updating ? "Saving..." : "Save Changes"}
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={updating}
+            >
+              Delete
+            </Button>
+          </div>
         </div>
-        <div className="flex space-x-2">
-          <Button 
-            onClick={handleSaveChanges}
-            disabled={updating}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            {updating ? "Saving..." : "Save Changes"}
-          </Button>
-          <Button 
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={updating}
-          >
-            Delete
-          </Button>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex gap-6 h-[calc(100vh-200px)]">
+        {/* Content Area */}
+        <div className="flex gap-6 h-[calc(100vh-280px)]">
         {/* Left Panel - Laws List */}
         <div className="w-1/3">
           <Card className="bg-card h-full flex flex-col">
@@ -391,6 +425,7 @@ export default function ControlFrameworkHistory() {
               </div>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </div>
