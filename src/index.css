@@ -43,7 +43,7 @@ All colors MUST be HSL.
     --radius: 0.375rem; /* 6px border radius */
 
     /* Sidebar colors - Dark blue like in reference image */
-    --sidebar-background: 216 45% 15%; /* #182f4e converted to HSL */
+    --sidebar-background: 216 53% 20%; /* #182f4e converted to HSL */
     --sidebar-foreground: 0 0% 100%; /* White text */
     --sidebar-primary: 216 45% 15%;
     --sidebar-primary-foreground: 0 0% 100%;
