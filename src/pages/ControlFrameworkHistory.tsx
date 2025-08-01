@@ -272,10 +272,10 @@ export default function ControlFrameworkHistory() {
         </div>
 
         {/* Content Area */}
-        <div className="flex gap-6 h-[calc(100vh-300px)]">
+        <div className="flex gap-6 h-[calc(100vh-240px)]">
         {/* Left Panel - Laws List */}
         <div className="w-1/3">
-          <Card className="bg-card h-full flex flex-col">
+          <Card className="bg-card h-full flex flex-col min-h-[600px]">
             <CardHeader className="flex-shrink-0">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-card-foreground font-bold">Laws and Regulations</CardTitle>
@@ -345,7 +345,7 @@ export default function ControlFrameworkHistory() {
 
         {/* Right Panel - Detail */}
         <div className="flex-1">
-          <Card className="bg-card h-full">
+          <Card className="bg-card h-full min-h-[600px]">
             <CardContent className="p-6 h-full flex flex-col">
               {/* Info Section */}
               <div className="mb-6">
