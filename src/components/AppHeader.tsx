@@ -2,12 +2,26 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, User, LogOut } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export const AppHeader = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
 
   // Load user information
   useEffect(() => {
@@ -44,7 +58,7 @@ export const AppHeader = () => {
   }, []);
 
   return (
-    <header className="h-16 bg-header border-b flex items-center justify-between px-6 py-4">
+    <header className="h-20 bg-header border-b flex items-center justify-between px-6">
       <div className="flex items-center">
         <h1 className="text-header-foreground font-medium text-lg">
           Hello {userProfile?.full_name || 'User'}!
@@ -62,7 +76,29 @@ export const AppHeader = () => {
             {userProfile?.email || user?.email}
           </p>
         </div>
-        <ChevronDown className="h-4 w-4 text-header-foreground/70" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <ChevronDown className="h-4 w-4 text-header-foreground/70" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            align="end" 
+            className="w-48 bg-white border border-gray-200 shadow-lg z-50"
+          >
+            <DropdownMenuItem className="flex items-center px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer">
+              <User className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={handleLogout}
+              className="flex items-center px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer text-red-600"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log Out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <LanguageSelector />
       </div>
     </header>
