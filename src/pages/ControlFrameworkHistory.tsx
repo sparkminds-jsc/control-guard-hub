@@ -130,18 +130,26 @@ export default function ControlFrameworkHistory() {
   };
 
   const handleExportExcel = () => {
+    if (controlFrameworks.length === 0) {
+      alert('No data to export');
+      return;
+    }
+
+    // Prepare export data with only verified control frameworks for current company
     const exportData = controlFrameworks.map((framework, index) => ({
       'No.': index + 1,
-      'Law/Regulation': framework.laws_and_regulations?.name || 'N/A',
+      'Id_Control_Framework': framework.id,
+      'Laws': framework.laws_and_regulations?.name || 'N/A',
+      'Context': framework.context || 'N/A',
+      'Description': framework.description || 'N/A',
       'Domain': framework.domains?.name || 'N/A',
       'Activity': framework.activities?.name || 'N/A',
       'Market': framework.markets?.name || 'N/A',
-      'Country Applied': framework.countryapplied || 'N/A',
-      'Risk Management': framework.riskmanagement || 'N/A',
-      'Referral Source': framework.referralsource || 'N/A',
-      'Context': framework.context || 'N/A',
-      'Description': framework.description || 'N/A',
-      'Created At': framework.created_at ? new Date(framework.created_at).toLocaleDateString() : 'N/A'
+      'Country_Applied': framework.countryapplied || 'N/A',
+      'Risk_Management': framework.riskmanagement || 'N/A',
+      'Referral_Source': framework.referralsource || 'N/A',
+      'Created_Date': framework.created_at ? new Date(framework.created_at).toLocaleDateString() : 'N/A',
+      'Verified': framework.isverify ? 'Yes' : 'No'
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
