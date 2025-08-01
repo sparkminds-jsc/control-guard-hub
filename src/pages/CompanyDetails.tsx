@@ -2454,24 +2454,24 @@ export default function CompanyDetails() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.isOpen} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, isOpen: open })}>
-        <AlertDialogContent className="bg-card border-border">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-card-foreground">
-              Xác nhận xóa
+            <AlertDialogTitle>
+              Delete Confirmation
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
-              Bạn có chắc chắn muốn xóa "{deleteDialog.name}" không? Hành động này không thể hoàn tác.
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deleteDialog.name}"? This action cannot be undone and will permanently remove this item from the system.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-card border-border text-card-foreground hover:bg-accent">
-              Hủy
+            <AlertDialogCancel>
+              Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Xóa
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -2863,19 +2863,18 @@ export default function CompanyDetails() {
 
       {/* Delete Laws and Regulation Confirmation Dialog */}
       <AlertDialog open={deleteLawDialog.isOpen} onOpenChange={(open) => !open && setDeleteLawDialog({ isOpen: false, id: "", name: "" })}>
-        <AlertDialogContent className="bg-card border-border">
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-card-foreground">
+            <AlertDialogTitle>
               Delete Laws and Regulation
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
+            <AlertDialogDescription>
               Are you sure you want to delete "{deleteLawDialog.name}"? This action cannot be undone and will permanently remove this law and regulation from the system.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
               onClick={() => setDeleteLawDialog({ isOpen: false, id: "", name: "" })}
-              className="bg-card border-border text-card-foreground hover:bg-accent"
             >
               Cancel
             </AlertDialogCancel>
