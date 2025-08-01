@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
@@ -36,8 +36,10 @@ const App = () => (
           {/* Main app routes with sidebar and header */}
           <Route path="/*" element={
             <SidebarProvider>
-              <div className="min-h-screen flex w-full">
+              <div className="min-h-screen flex w-full relative">
                 <AppSidebar />
+                {/* Floating SidebarTrigger */}
+                <SidebarTrigger className="fixed left-[18rem] top-1/2 -translate-y-1/2 z-50 bg-sidebar text-sidebar-foreground hover:bg-sidebar-accent rounded-full p-3 shadow-lg transition-all duration-200 data-[state=collapsed]:left-16" />
                 <div className="flex-1 flex flex-col">
                   <AppHeader />
                   <main className="flex-1 bg-background">

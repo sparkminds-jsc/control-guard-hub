@@ -59,13 +59,12 @@ export function AppSidebar() {
   return (
     <Sidebar className="w-72" collapsible="icon">
       <SidebarContent className="bg-sidebar">
-        <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
+        <div className="p-4 border-b border-sidebar-border flex items-center">
           <img 
             src="/lovable-uploads/e342c993-3182-48c6-9d00-4932fa518aa2.png" 
             alt="Logo" 
             className={`transition-all duration-200 ${isCollapsed ? 'h-8 w-8' : 'h-10 w-auto'}`}
           />
-          <SidebarTrigger className="text-sidebar-foreground hover:bg-sidebar-accent rounded-md p-2" />
         </div>
         
         <SidebarGroup>
