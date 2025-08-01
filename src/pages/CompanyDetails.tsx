@@ -847,75 +847,69 @@ export default function CompanyDetails() {
 
   const confirmDeleteCompany = async () => {
     try {
-      // Delete in correct order to avoid foreign key constraint violations
+      // First get all the related entity IDs for this company
+      const [domainsData, activitiesData, marketsData, lawsData] = await Promise.all([
+        supabase.from('domains').select('id').eq('company_id', id),
+        supabase.from('activities').select('id').eq('company_id', id),
+        supabase.from('markets').select('id').eq('company_id', id),
+        supabase.from('laws_and_regulations').select('id').eq('company_id', id)
+      ]);
+
+      const domainIds = domainsData.data?.map(d => d.id) || [];
+      const activityIds = activitiesData.data?.map(a => a.id) || [];
+      const marketIds = marketsData.data?.map(m => m.id) || [];
+      const lawIds = lawsData.data?.map(l => l.id) || [];
+
+      // Delete control_framework records that reference any of these entities
+      const deletePromises = [];
       
-      // 1. Delete control_framework first (it references other tables)
-      const { error: cfError } = await supabase
-        .from('control_framework')
-        .delete()
-        .eq('company_id', id);
-      
-      if (cfError) {
-        console.error('Error deleting control frameworks:', cfError);
-        throw cfError;
+      if (domainIds.length > 0) {
+        deletePromises.push(
+          supabase.from('control_framework').delete().in('id_domain', domainIds)
+        );
       }
       
-      // 2. Delete laws_and_regulations
-      const { error: lawsError } = await supabase
-        .from('laws_and_regulations')
-        .delete()
-        .eq('company_id', id);
-      
-      if (lawsError) {
-        console.error('Error deleting laws and regulations:', lawsError);
-        throw lawsError;
+      if (activityIds.length > 0) {
+        deletePromises.push(
+          supabase.from('control_framework').delete().in('id_activities', activityIds)
+        );
       }
       
-      // 3. Delete domains, activities, markets in parallel (no dependencies between them)
-      const [domainsResult, activitiesResult, marketsResult] = await Promise.allSettled([
+      if (marketIds.length > 0) {
+        deletePromises.push(
+          supabase.from('control_framework').delete().in('id_markets', marketIds)
+        );
+      }
+      
+      if (lawIds.length > 0) {
+        deletePromises.push(
+          supabase.from('control_framework').delete().in('id_laws_and_regulations', lawIds)
+        );
+      }
+
+      // Also delete control_framework records directly linked to company
+      deletePromises.push(
+        supabase.from('control_framework').delete().eq('company_id', id)
+      );
+
+      // Execute all control_framework deletions
+      await Promise.all(deletePromises);
+
+      // Now delete the related entities
+      await Promise.all([
+        supabase.from('laws_and_regulations').delete().eq('company_id', id),
         supabase.from('domains').delete().eq('company_id', id),
         supabase.from('activities').delete().eq('company_id', id),
         supabase.from('markets').delete().eq('company_id', id)
       ]);
-      
-      // Check for errors in parallel deletions
-      if (domainsResult.status === 'rejected') {
-        console.error('Error deleting domains:', domainsResult.reason);
-        throw domainsResult.reason;
-      }
-      if (domainsResult.status === 'fulfilled' && domainsResult.value?.error) {
-        console.error('Error deleting domains:', domainsResult.value.error);
-        throw domainsResult.value.error;
-      }
-      
-      if (activitiesResult.status === 'rejected') {
-        console.error('Error deleting activities:', activitiesResult.reason);
-        throw activitiesResult.reason;
-      }
-      if (activitiesResult.status === 'fulfilled' && activitiesResult.value?.error) {
-        console.error('Error deleting activities:', activitiesResult.value.error);
-        throw activitiesResult.value.error;
-      }
-      
-      if (marketsResult.status === 'rejected') {
-        console.error('Error deleting markets:', marketsResult.reason);
-        throw marketsResult.reason;
-      }
-      if (marketsResult.status === 'fulfilled' && marketsResult.value?.error) {
-        console.error('Error deleting markets:', marketsResult.value.error);
-        throw marketsResult.value.error;
-      }
-      
-      // 4. Finally delete the company
+
+      // Finally delete the company
       const { error: companyError } = await supabase
         .from('companies')
         .delete()
         .eq('id', id);
       
-      if (companyError) {
-        console.error('Error deleting company:', companyError);
-        throw companyError;
-      }
+      if (companyError) throw companyError;
       
       toast({
         title: "Company Deleted Successfully",
