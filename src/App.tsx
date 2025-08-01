@@ -28,11 +28,12 @@ const SidebarWithToggle = () => {
   return (
     <div className="relative">
       <AppSidebar />
-      {/* Nút toggle nằm ở chính giữa đường viền sidebar cho cả trạng thái mở rộng và thu gọn */}
+      {/* Nút toggle luôn nằm ở giữa đường viền sidebar */}
       <SidebarTrigger 
-        className={`absolute top-1/2 -translate-y-1/2 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-3 shadow-2xl transition-all duration-300 ease-in-out border-2 border-background ${
-          isCollapsed ? '-right-3' : '-right-3'
-        }`} 
+        className="absolute top-1/2 -translate-y-1/2 -right-4 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full w-8 h-8 flex items-center justify-center shadow-2xl transition-all duration-300 ease-in-out border-2 border-background"
+        style={{
+          right: '-16px', // Đặt cố định ở giữa đường viền
+        }}
       />
     </div>
   );
