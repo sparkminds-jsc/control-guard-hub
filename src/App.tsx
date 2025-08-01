@@ -39,7 +39,7 @@ const App = () => (
               <div className="min-h-screen flex w-full relative">
                 <AppSidebar />
                 {/* Floating SidebarTrigger */}
-                <SidebarTrigger className="fixed left-[18rem] top-1/2 -translate-y-1/2 z-50 bg-sidebar text-sidebar-foreground hover:bg-sidebar-accent rounded-full p-3 shadow-lg transition-all duration-200 data-[state=collapsed]:left-16" />
+                <SidebarTrigger className="fixed top-1/2 -translate-y-1/2 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-4 shadow-xl transition-all duration-300 ease-in-out data-[state=collapsed]:left-[3.5rem] left-[18rem] border-2 border-white" />
                 <div className="flex-1 flex flex-col">
                   <AppHeader />
                   <main className="flex-1 bg-background">
