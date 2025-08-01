@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -47,12 +48,12 @@ export default function GenerateControlFramework() {
   const [filteredCompanies, setFilteredCompanies] = useState<any[]>([]);
   const [filterValue, setFilterValue] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     companyName: "",
     websiteUrl: "",
-    dunsNumber: "",
-    country: ""
+    dunsNumber: ""
   });
 
   // Check authentication on component mount
@@ -107,6 +108,13 @@ export default function GenerateControlFramework() {
     if (companies.length === 1 && !currentUserCompanyId && user?.email) {
       handleUseCompany(companies[0].id, companies[0].name);
     }
+
+    // Extract unique countries from companies
+    const uniqueCountries = [...new Set(companies
+      .map(company => company.country)
+      .filter(country => country && country.trim() !== "")
+    )].sort();
+    setAvailableCountries(uniqueCountries);
   }, [companies, filterValue, countryFilter]);
 
   const loadCompanies = async () => {
@@ -273,7 +281,7 @@ export default function GenerateControlFramework() {
         name: formData.companyName,
         website_url: formData.websiteUrl,
         duns_number: formData.dunsNumber || null,
-        country: formData.country || apiData.country || null
+        country: apiData.country || null
       };
 
       const { data: company, error } = await supabase
@@ -351,8 +359,7 @@ export default function GenerateControlFramework() {
       setFormData({
         companyName: "",
         websiteUrl: "",
-        dunsNumber: "",
-        country: ""
+        dunsNumber: ""
       });
     } catch (error) {
       console.error('Error saving company:', error);
@@ -372,8 +379,7 @@ export default function GenerateControlFramework() {
     setFormData({
       companyName: "",
       websiteUrl: "",
-      dunsNumber: "",
-      country: ""
+      dunsNumber: ""
     });
   };
 
@@ -392,13 +398,17 @@ export default function GenerateControlFramework() {
                 value={filterValue}
                 onChange={(e) => setFilterValue(e.target.value)}
               />
-              <Input
-                id="filter-country"
-                placeholder="Country"
-                className="bg-card border-border w-48"
-                value={countryFilter}
-                onChange={(e) => setCountryFilter(e.target.value)}
-              />
+              <Select value={countryFilter} onValueChange={setCountryFilter}>
+                <SelectTrigger className="w-48 bg-card border-border">
+                  <SelectValue placeholder="Select Country" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Countries</SelectItem>
+                  {availableCountries.map((country) => (
+                    <SelectItem key={country} value={country}>{country}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
@@ -441,16 +451,6 @@ export default function GenerateControlFramework() {
                       placeholder="Enter DUNS number"
                       value={formData.dunsNumber}
                       onChange={(e) => setFormData({...formData, dunsNumber: e.target.value})}
-                      className="bg-card border-border"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="country" className="text-card-foreground font-medium">Country (Optional)</Label>
-                    <Input
-                      id="country"
-                      placeholder="Enter country"
-                      value={formData.country}
-                      onChange={(e) => setFormData({...formData, country: e.target.value})}
                       className="bg-card border-border"
                     />
                   </div>
