@@ -184,6 +184,9 @@ export default function GenerateControlFramework() {
     try {
       setLoading(true);
       
+      // Check if the company being deleted is the current user's company
+      const isCurrentCompany = currentUserCompanyId === companyId;
+      
       // Update company status to inactive instead of deleting
       const { error: companyError } = await supabase
         .from('companies')
@@ -192,15 +195,48 @@ export default function GenerateControlFramework() {
 
       if (companyError) throw companyError;
 
-      // Show success toast
-      toast({
-        title: "Company Deleted Successfully",
-        description: `Company "${companyName}" has been deleted successfully.`,
-        className: "fixed top-4 right-4 w-auto"
-      });
+      // If this was the current company, clear it from user
+      if (isCurrentCompany && user?.email) {
+        await supabase
+          .from('users')
+          .update({ id_company: null })
+          .eq('email', user.email);
+        
+        setCurrentUserCompanyId(null);
+      }
 
       // Reload companies list
       await loadCompanies();
+      
+      // After reloading, check if only one company remains
+      const { data: remainingCompanies, error: checkError } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('status', 'active');
+
+      if (!checkError && remainingCompanies && remainingCompanies.length === 1 && user?.email) {
+        // Auto-select the remaining company
+        const remainingCompany = remainingCompanies[0];
+        await supabase
+          .from('users')
+          .update({ id_company: remainingCompany.id })
+          .eq('email', user.email);
+        
+        setCurrentUserCompanyId(remainingCompany.id);
+        
+        toast({
+          title: "Company Deleted Successfully",
+          description: `Company "${companyName}" has been deleted. "${remainingCompany.name}" is now your current company.`,
+          className: "fixed top-4 right-4 w-auto"
+        });
+      } else {
+        // Show normal success toast
+        toast({
+          title: "Company Deleted Successfully", 
+          description: `Company "${companyName}" has been deleted successfully.`,
+          className: "fixed top-4 right-4 w-auto"
+        });
+      }
     } catch (error) {
       console.error('Error deleting company:', error);
       toast({
