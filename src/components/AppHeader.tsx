@@ -44,29 +44,26 @@ export const AppHeader = () => {
   }, []);
 
   return (
-    <header className="h-16 bg-header border-b flex items-center justify-between px-4">
+    <header className="h-16 bg-header border-b flex items-center justify-between px-6">
       <div className="flex items-center">
-        {/* Left side can be used for breadcrumbs or title */}
+        <h1 className="text-header-foreground font-medium text-lg">
+          Hello {userProfile?.full_name || 'User'}!
+        </h1>
       </div>
-      <div className="flex items-center space-x-4">
-        <LanguageSelector />
+      <div className="flex items-center space-x-3">
         <Avatar className="h-8 w-8">
           <AvatarImage src="/placeholder.svg" alt="User Avatar" />
           <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
             {userProfile?.full_name ? userProfile.full_name.charAt(0).toUpperCase() : 'U'}
           </AvatarFallback>
         </Avatar>
-        <div className="flex items-center space-x-2">
-          <div className="text-right">
-            <p className="text-header-foreground font-medium text-sm">
-              {userProfile?.full_name || 'User'}
-            </p>
-            <p className="text-header-foreground/70 text-xs">
-              {userProfile?.email || user?.email}
-            </p>
-          </div>
-          <ChevronDown className="h-4 w-4 text-header-foreground/70" />
+        <div className="text-right">
+          <p className="text-header-foreground font-medium text-sm">
+            {userProfile?.email || user?.email}
+          </p>
         </div>
+        <ChevronDown className="h-4 w-4 text-header-foreground/70" />
+        <LanguageSelector />
       </div>
     </header>
   );
