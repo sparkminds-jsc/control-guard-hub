@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,7 @@ export default function ControlFrameworkHistory() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [userCompanyId, setUserCompanyId] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,8 +106,6 @@ export default function ControlFrameworkHistory() {
   const handleDelete = async () => {
     if (controlFrameworks.length === 0) return;
     
-    if (!confirm('Are you sure you want to delete this control framework?')) return;
-    
     try {
       setUpdating(true);
       const currentFramework = controlFrameworks[selectedFramework];
@@ -122,6 +122,7 @@ export default function ControlFrameworkHistory() {
       if (selectedFramework >= controlFrameworks.length - 1) {
         setSelectedFramework(Math.max(0, controlFrameworks.length - 2));
       }
+      setShowDeleteDialog(false);
     } catch (error) {
       console.error('Error deleting control framework:', error);
     } finally {
@@ -269,13 +270,35 @@ export default function ControlFrameworkHistory() {
             >
               {updating ? "Saving..." : "Save Changes"}
             </Button>
-            <Button 
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={updating}
-            >
-              Delete
-            </Button>
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive"
+                  disabled={updating}
+                >
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Control Framework</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this control framework? This action cannot be undone.
+                    <br /><br />
+                    <strong>Framework:</strong> {currentFramework?.laws_and_regulations?.name || 'Unnamed Framework'}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
