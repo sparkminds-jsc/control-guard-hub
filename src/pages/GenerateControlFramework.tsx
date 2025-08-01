@@ -116,10 +116,10 @@ export default function GenerateControlFramework() {
       
       if (marketsError) throw marketsError;
 
-      // Delete the company
+      // Soft delete the company - just update status
       const { error: companyError } = await supabase
         .from('companies')
-        .delete()
+        .update({ status: 'deleted' })
         .eq('id', companyId);
 
       if (companyError) throw companyError;
