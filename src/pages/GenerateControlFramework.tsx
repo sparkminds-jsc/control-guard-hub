@@ -94,32 +94,10 @@ export default function GenerateControlFramework() {
     try {
       setLoading(true);
       
-      // Delete related data first (domains, activities, markets)
-      const { error: domainsError } = await supabase
-        .from('domains')
-        .delete()
-        .eq('company_id', companyId);
-      
-      if (domainsError) throw domainsError;
-
-      const { error: activitiesError } = await supabase
-        .from('activities')
-        .delete()
-        .eq('company_id', companyId);
-      
-      if (activitiesError) throw activitiesError;
-
-      const { error: marketsError } = await supabase
-        .from('markets')
-        .delete()
-        .eq('company_id', companyId);
-      
-      if (marketsError) throw marketsError;
-
-      // Delete the company
+      // Update company status to inactive instead of deleting
       const { error: companyError } = await supabase
         .from('companies')
-        .delete()
+        .update({ status: 'inactive' })
         .eq('id', companyId);
 
       if (companyError) throw companyError;
