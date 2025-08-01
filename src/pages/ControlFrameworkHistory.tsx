@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function ControlFrameworkHistory() {
   const navigate = useNavigate();
@@ -15,6 +15,10 @@ export default function ControlFrameworkHistory() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [userCompanyId, setUserCompanyId] = useState<string | null>(null);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     getCurrentUserCompany();
@@ -194,6 +198,12 @@ export default function ControlFrameworkHistory() {
     );
   }
 
+  // Calculate pagination
+  const totalPages = Math.ceil(controlFrameworks.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentFrameworks = controlFrameworks.slice(startIndex, endIndex);
+  
   const currentFramework = controlFrameworks[selectedFramework];
 
   return (
@@ -232,31 +242,70 @@ export default function ControlFrameworkHistory() {
       <div className="flex gap-6 h-[calc(100vh-200px)]">
         {/* Left Panel - Laws List */}
         <div className="w-1/3">
-          <Card className="bg-card h-full">
-            <CardHeader>
-              <CardTitle className="text-card-foreground font-bold">Control Frameworks</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="space-y-2 p-4">
-                {controlFrameworks.map((framework, index) => (
-                  <div
-                    key={framework.id}
-                    className={`p-3 rounded-md cursor-pointer transition-colors ${
-                      selectedFramework === index
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted hover:bg-muted/80 text-card-foreground"
-                    }`}
-                    onClick={() => setSelectedFramework(index)}
-                  >
-                    <div className="font-medium">
-                      {framework.laws_and_regulations?.name || 'Unnamed Framework'}
-                    </div>
-                    <div className="text-sm opacity-70">
-                      {framework.domains?.name || 'No Domain'} • {framework.countryapplied || 'No Country'}
-                    </div>
-                  </div>
-                ))}
+          <Card className="bg-card h-full flex flex-col">
+            <CardHeader className="flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-card-foreground font-bold">Control Frameworks</CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  {controlFrameworks.length} total
+                </div>
               </div>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 flex flex-col">
+              <div className="space-y-2 p-4 flex-1 overflow-y-auto">
+                {currentFrameworks.map((framework, index) => {
+                  const actualIndex = startIndex + index;
+                  return (
+                    <div
+                      key={framework.id}
+                      className={`p-3 rounded-md cursor-pointer transition-colors ${
+                        selectedFramework === actualIndex
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted hover:bg-muted/80 text-card-foreground"
+                      }`}
+                      onClick={() => setSelectedFramework(actualIndex)}
+                    >
+                      <div className="font-medium">
+                        {framework.laws_and_regulations?.name || 'Unnamed Framework'}
+                      </div>
+                      <div className="text-sm opacity-70">
+                        {framework.domains?.name || 'No Domain'} • {framework.countryapplied || 'No Country'}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between p-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
