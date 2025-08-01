@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppHeader } from "@/components/AppHeader";
@@ -21,6 +21,23 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const SidebarWithToggle = () => {
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+  
+  return (
+    <div className="relative">
+      <AppSidebar />
+      {/* Nút toggle nằm ở chính giữa đường viền sidebar cho cả trạng thái mở rộng và thu gọn */}
+      <SidebarTrigger 
+        className={`absolute top-1/2 -translate-y-1/2 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-3 shadow-2xl transition-all duration-300 ease-in-out border-2 border-background ${
+          isCollapsed ? '-right-3' : '-right-3'
+        }`} 
+      />
+    </div>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
@@ -37,11 +54,7 @@ const App = () => (
           <Route path="/*" element={
             <SidebarProvider>
               <div className="min-h-screen flex w-full relative">
-                <div className="relative">
-                  <AppSidebar />
-                  {/* Nút toggle nằm ở chính giữa đường viền sidebar */}
-                  <SidebarTrigger className="absolute top-1/2 -translate-y-1/2 -right-3 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-3 shadow-2xl transition-all duration-300 ease-in-out border-2 border-background" />
-                </div>
+                <SidebarWithToggle />
                 <div className="flex-1 flex flex-col">
                   <AppHeader />
                   <main className="flex-1 bg-background">
