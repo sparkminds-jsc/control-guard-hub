@@ -66,6 +66,9 @@ export default function CompanyDetails() {
     id: "", 
     name: "" 
   });
+  const [deleteCompanyDialog, setDeleteCompanyDialog] = useState({
+    isOpen: false
+  });
   const [deleteLawDialog, setDeleteLawDialog] = useState({
     isOpen: false,
     id: "",
@@ -838,6 +841,46 @@ export default function CompanyDetails() {
     }
   };
 
+  const handleDeleteCompany = () => {
+    setDeleteCompanyDialog({ isOpen: true });
+  };
+
+  const confirmDeleteCompany = async () => {
+    try {
+      // Delete all related data first
+      await supabase.from('control_framework').delete().eq('company_id', id);
+      await supabase.from('laws_and_regulations').delete().eq('company_id', id);
+      await supabase.from('domains').delete().eq('company_id', id);
+      await supabase.from('activities').delete().eq('company_id', id);
+      await supabase.from('markets').delete().eq('company_id', id);
+      
+      // Delete the company
+      const { error } = await supabase.from('companies').delete().eq('id', id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Company Deleted Successfully",
+        description: "The company and all related data have been removed.",
+        className: "fixed top-4 right-4 w-auto"
+      });
+      
+      // Navigate back to the index page
+      navigate('/');
+      
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      toast({
+        title: "Delete Failed",
+        description: "An error occurred while deleting the company.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
+    }
+    
+    setDeleteCompanyDialog({ isOpen: false });
+  };
+
   const cancelEditCountry = () => {
     setIsEditingCountry(false);
     setTempCountry("");
@@ -1345,12 +1388,21 @@ export default function CompanyDetails() {
              </div>
            </div>
 
-          <Button 
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-            onClick={() => setShowDetails(true)}
-          >
-            Get Company Details
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() => setShowDetails(true)}
+            >
+              Get Company Details
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleDeleteCompany}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Company
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -2812,6 +2864,31 @@ export default function CompanyDetails() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Company Confirmation Dialog */}
+      <AlertDialog open={deleteCompanyDialog.isOpen} onOpenChange={(open) => setDeleteCompanyDialog({ isOpen: open })}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-card-foreground">
+              Delete Company
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Are you sure you want to delete this company? This will permanently remove the company and all associated data including domains, activities, markets, laws & regulations, and control frameworks. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-card border-border text-card-foreground hover:bg-accent">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteCompany}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Company
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
