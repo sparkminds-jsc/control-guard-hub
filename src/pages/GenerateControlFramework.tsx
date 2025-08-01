@@ -46,11 +46,13 @@ export default function GenerateControlFramework() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [filteredCompanies, setFilteredCompanies] = useState<any[]>([]);
   const [filterValue, setFilterValue] = useState("");
+  const [countryFilter, setCountryFilter] = useState("");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     companyName: "",
     websiteUrl: "",
-    dunsNumber: ""
+    dunsNumber: "",
+    country: ""
   });
 
   // Check authentication on component mount
@@ -85,21 +87,27 @@ export default function GenerateControlFramework() {
 
   // Filter companies when filter value changes and auto-select if only one company
   useEffect(() => {
-    if (filterValue.trim() === "") {
-      setFilteredCompanies(companies);
-    } else {
-      setFilteredCompanies(
-        companies.filter(company => 
-          company.name.toLowerCase().includes(filterValue.toLowerCase())
-        )
+    let filtered = companies;
+    
+    if (filterValue.trim() !== "") {
+      filtered = filtered.filter(company => 
+        company.name.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
+    
+    if (countryFilter.trim() !== "") {
+      filtered = filtered.filter(company => 
+        company.country?.toLowerCase().includes(countryFilter.toLowerCase())
+      );
+    }
+    
+    setFilteredCompanies(filtered);
 
     // Auto-select company if only one exists and user has no current company
     if (companies.length === 1 && !currentUserCompanyId && user?.email) {
       handleUseCompany(companies[0].id, companies[0].name);
     }
-  }, [filterValue, companies, currentUserCompanyId, user?.email]);
+  }, [companies, filterValue, countryFilter]);
 
   const loadCompanies = async () => {
     try {
@@ -265,7 +273,7 @@ export default function GenerateControlFramework() {
         name: formData.companyName,
         website_url: formData.websiteUrl,
         duns_number: formData.dunsNumber || null,
-        country: apiData.country || null
+        country: formData.country || apiData.country || null
       };
 
       const { data: company, error } = await supabase
@@ -343,7 +351,8 @@ export default function GenerateControlFramework() {
       setFormData({
         companyName: "",
         websiteUrl: "",
-        dunsNumber: ""
+        dunsNumber: "",
+        country: ""
       });
     } catch (error) {
       console.error('Error saving company:', error);
@@ -363,7 +372,8 @@ export default function GenerateControlFramework() {
     setFormData({
       companyName: "",
       websiteUrl: "",
-      dunsNumber: ""
+      dunsNumber: "",
+      country: ""
     });
   };
 
@@ -381,6 +391,13 @@ export default function GenerateControlFramework() {
                 className="bg-card border-border w-64"
                 value={filterValue}
                 onChange={(e) => setFilterValue(e.target.value)}
+              />
+              <Input
+                id="filter-country"
+                placeholder="Country"
+                className="bg-card border-border w-48"
+                value={countryFilter}
+                onChange={(e) => setCountryFilter(e.target.value)}
               />
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -427,6 +444,16 @@ export default function GenerateControlFramework() {
                       className="bg-card border-border"
                     />
                   </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="country" className="text-card-foreground font-medium">Country (Optional)</Label>
+                    <Input
+                      id="country"
+                      placeholder="Enter country"
+                      value={formData.country}
+                      onChange={(e) => setFormData({...formData, country: e.target.value})}
+                      className="bg-card border-border"
+                    />
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={handleCancel}>
@@ -454,6 +481,7 @@ export default function GenerateControlFramework() {
                 <TableHead className="text-card-foreground font-bold">Company Name</TableHead>
                 <TableHead className="text-card-foreground font-bold">Website URL</TableHead>
                 <TableHead className="text-card-foreground font-bold">DUNS Number</TableHead>
+                <TableHead className="text-card-foreground font-bold">Country</TableHead>
                 <TableHead className="text-card-foreground font-bold">Created Date</TableHead>
                 <TableHead className="text-card-foreground font-bold">Action</TableHead>
               </TableRow>
@@ -461,14 +489,14 @@ export default function GenerateControlFramework() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-card-foreground">
+                  <TableCell colSpan={7} className="text-center text-card-foreground">
                     Loading companies...
                   </TableCell>
                 </TableRow>
               ) : filteredCompanies.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-card-foreground">
-                    {filterValue ? "No companies found matching filter" : "No companies added yet"}
+                  <TableCell colSpan={7} className="text-center text-card-foreground">
+                    {filterValue || countryFilter ? "No companies found matching filter" : "No companies added yet"}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -478,6 +506,7 @@ export default function GenerateControlFramework() {
                     <TableCell className="text-card-foreground">{company.name}</TableCell>
                     <TableCell className="text-card-foreground">{company.website_url || 'N/A'}</TableCell>
                     <TableCell className="text-card-foreground">{company.duns_number || 'N/A'}</TableCell>
+                    <TableCell className="text-card-foreground">{company.country || 'N/A'}</TableCell>
                     <TableCell className="text-card-foreground">
                       {new Date(company.created_at).toLocaleDateString()}
                     </TableCell>
