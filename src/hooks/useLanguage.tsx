@@ -20,7 +20,7 @@ const languages: Language[] = [
 const translations = {
   en: {
     'nav.framework': 'Generate Control Framework',
-    'nav.history': 'Control Framework History',
+    'nav.history': 'Control Framework',
     'nav.company_info': 'Company Info Feedback',
     'nav.company_laws': 'Company Laws Feedback', 
     'nav.company_control': 'Company Control Feedback',
