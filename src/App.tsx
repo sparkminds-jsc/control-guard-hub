@@ -37,9 +37,11 @@ const App = () => (
           <Route path="/*" element={
             <SidebarProvider>
               <div className="min-h-screen flex w-full relative">
-                <AppSidebar />
-                {/* Floating SidebarTrigger */}
-                <SidebarTrigger className="fixed top-1/2 -translate-y-1/2 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-4 shadow-xl transition-all duration-300 ease-in-out data-[state=collapsed]:left-[3.5rem] left-[18rem] border-2 border-white" />
+                <div className="relative">
+                  <AppSidebar />
+                  {/* Nút toggle nằm ở giữa đường viền sidebar */}
+                  <SidebarTrigger className="absolute top-1/2 -translate-y-1/2 -right-6 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full p-4 shadow-xl transition-all duration-300 ease-in-out border-2 border-white" />
+                </div>
                 <div className="flex-1 flex flex-col">
                   <AppHeader />
                   <main className="flex-1 bg-background">
