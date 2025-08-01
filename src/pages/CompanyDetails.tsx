@@ -32,6 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Trash2, Plus, Edit, Eye, Search, Filter, Loader2 } from "lucide-react";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -2914,16 +2915,7 @@ export default function CompanyDetails() {
       </AlertDialog>
 
       {/* Global API Loading Overlay */}
-      {apiLoading && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card p-6 rounded-lg shadow-lg">
-            <div className="flex items-center space-x-3">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <span className="text-card-foreground">Processing...</span>
-            </div>
-          </div>
-        </div>
-      )}
+      <LoadingOverlay isVisible={apiLoading} />
 
       <Toaster />
     </div>
