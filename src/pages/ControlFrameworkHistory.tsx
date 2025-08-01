@@ -3,24 +3,47 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
 
 export default function ControlFrameworkHistory() {
-  const { companyId } = useParams();
   const navigate = useNavigate();
   const [selectedFramework, setSelectedFramework] = useState<number>(0);
   const [controlFrameworks, setControlFrameworks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [userCompanyId, setUserCompanyId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (companyId) {
+    getCurrentUserCompany();
+  }, []);
+
+  useEffect(() => {
+    if (userCompanyId) {
       loadControlFrameworks();
     }
-  }, [companyId]);
+  }, [userCompanyId]);
+
+  const getCurrentUserCompany = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id_company')
+          .eq('email', user.email)
+          .single();
+        
+        if (userData?.id_company) {
+          setUserCompanyId(userData.id_company);
+        }
+      }
+    } catch (error) {
+      console.error('Error getting user company:', error);
+    }
+  };
 
   const loadControlFrameworks = async () => {
     try {
@@ -34,7 +57,7 @@ export default function ControlFrameworkHistory() {
           markets!control_framework_id_markets_fkey(name),
           laws_and_regulations!control_framework_id_laws_and_regulations_fkey(name, description, source)
         `)
-        .eq('company_id', companyId)
+        .eq('company_id', userCompanyId)
         .eq('isverify', true)
         .order('created_at', { ascending: false });
       
@@ -150,7 +173,7 @@ export default function ControlFrameworkHistory() {
           <Button 
             variant="ghost" 
             size="icon"
-            onClick={() => navigate(`/company-details/${companyId}`)}
+            onClick={() => navigate('/')}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -161,9 +184,9 @@ export default function ControlFrameworkHistory() {
             <p className="text-muted-foreground">No control frameworks found for this company.</p>
             <Button 
               className="mt-4"
-              onClick={() => navigate(`/company-details/${companyId}`)}
+              onClick={() => navigate('/')}
             >
-              Go Back to Company Details
+              Go Back to Home
             </Button>
           </CardContent>
         </Card>
@@ -181,7 +204,7 @@ export default function ControlFrameworkHistory() {
           <Button 
             variant="ghost" 
             size="icon"
-            onClick={() => navigate(`/company-details/${companyId}`)}
+            onClick={() => navigate('/')}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
