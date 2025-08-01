@@ -35,6 +35,7 @@ export default function ControlFrameworkHistory() {
           laws_and_regulations!control_framework_id_laws_and_regulations_fkey(name, description, source)
         `)
         .eq('company_id', companyId)
+        .eq('isverify', true)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
