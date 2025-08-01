@@ -44,7 +44,7 @@ export const AppHeader = () => {
   }, []);
 
   return (
-    <header className="h-16 bg-header border-b flex items-center justify-between px-6">
+    <header className="h-16 bg-header border-b flex items-center justify-between px-6 py-4">
       <div className="flex items-center">
         <h1 className="text-header-foreground font-medium text-lg">
           Hello {userProfile?.full_name || 'User'}!
