@@ -41,6 +41,7 @@ export default function GenerateControlFramework() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
+  const [currentUserCompanyId, setCurrentUserCompanyId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [companies, setCompanies] = useState<any[]>([]);
   const [filteredCompanies, setFilteredCompanies] = useState<any[]>([]);
@@ -62,6 +63,7 @@ export default function GenerateControlFramework() {
       }
       setUser(session.user);
       loadCompanies();
+      loadCurrentUserCompany(session.user.id);
     };
 
     checkAuth();
@@ -72,6 +74,9 @@ export default function GenerateControlFramework() {
         navigate('/login');
       } else {
         setUser(session.user);
+        if (session.user) {
+          loadCurrentUserCompany(session.user.id);
+        }
       }
     });
 
@@ -104,6 +109,53 @@ export default function GenerateControlFramework() {
       setCompanies(data || []);
     } catch (error) {
       console.error('Error loading companies:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCurrentUserCompany = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id_company')
+        .eq('email', user?.email)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      setCurrentUserCompanyId(data?.id_company || null);
+    } catch (error) {
+      console.error('Error loading user company:', error);
+    }
+  };
+
+  const handleUseCompany = async (companyId: string, companyName: string) => {
+    try {
+      setLoading(true);
+      
+      // Update user's company
+      const { error } = await supabase
+        .from('users')
+        .update({ id_company: companyId })
+        .eq('email', user?.email);
+
+      if (error) throw error;
+
+      setCurrentUserCompanyId(companyId);
+      
+      toast({
+        title: "Company Selected",
+        description: `You are now using "${companyName}" as your current company.`,
+        className: "fixed top-4 right-4 w-auto"
+      });
+    } catch (error) {
+      console.error('Error updating user company:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update company. Please try again.",
+        variant: "destructive",
+        className: "fixed top-4 right-4 w-auto"
+      });
     } finally {
       setLoading(false);
     }
@@ -364,6 +416,14 @@ export default function GenerateControlFramework() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant={currentUserCompanyId === company.id ? "secondary" : "default"}
+                          disabled={currentUserCompanyId === company.id || loading}
+                          onClick={() => handleUseCompany(company.id, company.name)}
+                        >
+                          {currentUserCompanyId === company.id ? "Current" : "Use"}
+                        </Button>
                         <Button 
                           size="sm" 
                           className="bg-primary text-primary-foreground hover:bg-primary/90"
