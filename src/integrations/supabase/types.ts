@@ -291,6 +291,41 @@ export type Database = {
           },
         ]
       }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          id_company: string | null
+          password: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          id_company?: string | null
+          password: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          id_company?: string | null
+          password?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_id_company_fkey"
+            columns: ["id_company"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
