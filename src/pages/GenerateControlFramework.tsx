@@ -83,7 +83,7 @@ export default function GenerateControlFramework() {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Filter companies when filter value changes
+  // Filter companies when filter value changes and auto-select if only one company
   useEffect(() => {
     if (filterValue.trim() === "") {
       setFilteredCompanies(companies);
@@ -94,7 +94,12 @@ export default function GenerateControlFramework() {
         )
       );
     }
-  }, [filterValue, companies]);
+
+    // Auto-select company if only one exists and user has no current company
+    if (companies.length === 1 && !currentUserCompanyId && user?.email) {
+      handleUseCompany(companies[0].id, companies[0].name);
+    }
+  }, [filterValue, companies, currentUserCompanyId, user?.email]);
 
   const loadCompanies = async () => {
     try {
@@ -133,7 +138,13 @@ export default function GenerateControlFramework() {
     try {
       setLoading(true);
       
-      // Update user's company
+      // First, clear the current company from all other users to ensure only one user per company
+      await supabase
+        .from('users')
+        .update({ id_company: null })
+        .eq('id_company', companyId);
+      
+      // Then update current user's company
       const { error } = await supabase
         .from('users')
         .update({ id_company: companyId })
