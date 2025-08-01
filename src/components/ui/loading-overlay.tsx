@@ -11,7 +11,7 @@ export const LoadingOverlay = ({ isVisible, className }: LoadingOverlayProps) =>
   return (
     <div 
       className={cn(
-        "fixed inset-0 z-[9999] flex items-center justify-center bg-background/90 backdrop-blur-sm cursor-wait",
+        "fixed inset-0 z-[9999] flex items-center justify-center bg-blue-500/80 backdrop-blur-sm cursor-wait",
         className
       )}
       onClick={(e) => e.stopPropagation()}
