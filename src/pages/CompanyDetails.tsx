@@ -1827,7 +1827,7 @@ export default function CompanyDetails() {
                       <TableCell className="text-card-foreground max-w-xs truncate" title={law.description}>
                         {law.description}
                       </TableCell>
-                      <TableCell className="text-card-foreground">{law.country}</TableCell>
+                      <TableCell className="text-card-foreground">{law.country_applied || 'N/A'}</TableCell>
                       <TableCell className="text-card-foreground max-w-xs truncate" title={law.source}>
                         {law.source}
                       </TableCell>
@@ -1920,7 +1920,7 @@ export default function CompanyDetails() {
               <Button 
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleGenerateControlFramework}
-                disabled={loading}
+                disabled={loading || lawsAndRegulations.length === 0}
               >
                 {loading ? (
                   <>
