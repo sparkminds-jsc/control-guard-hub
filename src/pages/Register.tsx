@@ -26,6 +26,9 @@ const Register = () => {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
+      // Clean up any existing auth state first
+      await supabase.auth.signOut();
+      
       // First, create the auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
@@ -52,11 +55,14 @@ const Register = () => {
             {
               email: data.email,
               password: data.password, // Note: In production, don't store plain text passwords
+              full_name: data.fullname,
+              phone: data.phone,
             }
           ]);
 
         if (userError) {
           console.error("Error creating user record:", userError);
+          // Don't stop the registration process if user record creation fails
         }
 
         toast({
@@ -67,10 +73,10 @@ const Register = () => {
         // Redirect to login page
         window.location.href = "/login";
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "An error occurred, please try again.",
+        description: error.message || "An error occurred, please try again.",
         variant: "destructive",
       });
     } finally {

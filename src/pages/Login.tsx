@@ -21,7 +21,10 @@ const Login = () => {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // Clean up any existing auth state first
+      await supabase.auth.signOut();
+      
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
@@ -32,7 +35,7 @@ const Login = () => {
           description: error.message,
           variant: "destructive",
         });
-      } else {
+      } else if (authData.user) {
         toast({
           title: "Login Successful",
           description: "Welcome back!",
@@ -40,10 +43,10 @@ const Login = () => {
         // Redirect will be handled by auth state change
         window.location.href = "/";
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "An error occurred, please try again.",
+        description: error.message || "An error occurred, please try again.",
         variant: "destructive",
       });
     } finally {
