@@ -59,11 +59,11 @@ export function AppSidebar() {
   return (
     <Sidebar className="w-72" collapsible="icon">
       <SidebarContent className="bg-sidebar">
-        <div className={`border-b border-sidebar-border flex items-center ${isCollapsed ? 'p-0' : 'p-4'}`}>
+        <div className={`border-b border-sidebar-border flex items-center ${isCollapsed ? 'p-0 justify-center' : 'p-4'}`}>
           <img 
             src="/lovable-uploads/e342c993-3182-48c6-9d00-4932fa518aa2.png" 
             alt="Logo" 
-            className={`transition-all duration-200 ${isCollapsed ? 'h-8 w-8' : 'h-10 w-auto'}`}
+            className={`transition-all duration-200 ${isCollapsed ? 'w-8 h-6' : 'h-10 w-auto'}`}
           />
         </div>
         
