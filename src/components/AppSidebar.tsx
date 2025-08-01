@@ -59,7 +59,7 @@ export function AppSidebar() {
   return (
     <Sidebar className="w-72" collapsible="icon">
       <SidebarContent className="bg-sidebar">
-        <div className={`border-b border-sidebar-border flex items-center ${isCollapsed ? 'p-0 justify-center' : 'p-4'}`}>
+        <div className={`border-b border-sidebar-border flex items-center ${isCollapsed ? 'p-0 justify-center h-20' : 'p-4'}`}>
           <img 
             src="/lovable-uploads/e342c993-3182-48c6-9d00-4932fa518aa2.png" 
             alt="Logo" 
