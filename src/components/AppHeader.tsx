@@ -59,8 +59,8 @@ export const AppHeader = () => {
 
   return (
     <header className="h-20 bg-header border-b flex items-center justify-between px-6">
-      <div className="flex items-center">
-        <h1 className="text-header-foreground font-medium text-lg">
+      <div className="flex items-center ml-4">
+        <h1 className="text-header-foreground font-medium text-lg mt-2">
           Hello {userProfile?.full_name || 'User'}!
         </h1>
       </div>
