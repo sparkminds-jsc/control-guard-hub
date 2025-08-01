@@ -61,7 +61,7 @@ export function AppSidebar() {
       <SidebarContent className="bg-sidebar">
         <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
           <img 
-            src="/lovable-uploads/3ba0123f-293a-4c6a-9c9e-d1131fc7b42e.png" 
+            src="/lovable-uploads/ff3abc3d-0f23-4d05-99df-7801d8360be4.png" 
             alt="Logo" 
             className={`transition-all duration-200 ${isCollapsed ? 'h-8 w-8' : 'h-10 w-auto'}`}
           />
