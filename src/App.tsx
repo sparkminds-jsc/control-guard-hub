@@ -37,9 +37,10 @@ const App = () => (
             <Route path="/company-laws" element={<CompanyLawsFeedback />} />
             <Route path="/company-control" element={<CompanyControlFeedback />} />
             <Route path="/company-details/:id" element={<CompanyDetails />} />
-          <Route path="/control-framework/:id" element={<ControlFrameworkDetail />} />
-          <Route path="/law-regulation/:id" element={<LawRegulationDetail />} />
-          <Route path="*" element={<NotFound />} />
+            <Route path="/company/:companyId/control-frameworks" element={<ControlFrameworkHistory />} />
+            <Route path="/control-framework/:id" element={<ControlFrameworkDetail />} />
+            <Route path="/law-regulation/:id" element={<LawRegulationDetail />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
               </main>
             </div>

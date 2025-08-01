@@ -1803,15 +1803,23 @@ export default function CompanyDetails() {
         <Card className="bg-card">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-card-foreground font-bold">Control Framework</CardTitle>
-               <div className="flex gap-2">
-                 <Button 
-                   className="bg-primary text-primary-foreground hover:bg-primary/90"
-                   onClick={() => setShowAddControlFrameworkDialog(true)}
-                 >
-                   <Plus className="h-4 w-4 mr-2" />
-                   Add Control Framework
-                 </Button>
+               <CardTitle className="text-card-foreground font-bold">Control Framework</CardTitle>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    className="bg-card border-border text-card-foreground hover:bg-accent"
+                    onClick={() => navigate(`/company/${id}/control-frameworks`)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    View History
+                  </Button>
+                  <Button 
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => setShowAddControlFrameworkDialog(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Control Framework
+                  </Button>
                  <Button 
                    className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
                    onClick={submitControlFramework}

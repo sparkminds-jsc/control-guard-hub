@@ -2,60 +2,203 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft } from "lucide-react";
 
 export default function ControlFrameworkHistory() {
-  const [selectedLaw, setSelectedLaw] = useState<number>(0);
+  const { companyId } = useParams();
+  const navigate = useNavigate();
+  const [selectedFramework, setSelectedFramework] = useState<number>(0);
+  const [controlFrameworks, setControlFrameworks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
 
-  const lawsData = [
-    {
-      id: 1,
-      title: "GDPR Compliance",
-      domain: "Data Protection",
-      activity: "Data Processing",
-      market: "European Union",
-      detail: "General Data Protection Regulation compliance requirements",
-      countryApplied: "EU",
-      referralSource: "European Commission",
-      context: "This regulation applies to all organizations processing personal data of EU residents",
-      description: "GDPR establishes comprehensive data protection rules for organizations handling personal data within the EU jurisdiction."
-    },
-    {
-      id: 2,
-      title: "SOX Compliance",
-      domain: "Financial Reporting",
-      activity: "Financial Operations",
-      market: "United States",
-      detail: "Sarbanes-Oxley Act compliance for financial reporting",
-      countryApplied: "USA",
-      referralSource: "SEC",
-      context: "Applies to all publicly traded companies in the United States",
-      description: "SOX requires companies to maintain accurate financial records and implement internal controls over financial reporting."
-    },
-    {
-      id: 3,
-      title: "ISO 27001",
-      domain: "Information Security",
-      activity: "Security Management",
-      market: "Global",
-      detail: "Information Security Management System standards",
-      countryApplied: "International",
-      referralSource: "ISO Organization",
-      context: "International standard for information security management systems",
-      description: "ISO 27001 provides a framework for establishing, implementing, maintaining and continually improving an information security management system."
+  useEffect(() => {
+    if (companyId) {
+      loadControlFrameworks();
     }
-  ];
+  }, [companyId]);
+
+  const loadControlFrameworks = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('control_framework')
+        .select(`
+          *,
+          domains!control_framework_id_domain_fkey(name),
+          activities!control_framework_id_activities_fkey(name),
+          markets!control_framework_id_markets_fkey(name),
+          laws_and_regulations!control_framework_id_laws_and_regulations_fkey(name, description, source)
+        `)
+        .eq('company_id', companyId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setControlFrameworks(data || []);
+    } catch (error) {
+      console.error('Error loading control frameworks:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    if (controlFrameworks.length === 0) return;
+    
+    try {
+      setUpdating(true);
+      const currentFramework = controlFrameworks[selectedFramework];
+      
+      const { error } = await supabase
+        .from('control_framework')
+        .update({
+          context: (document.querySelector('input[name="context"]') as HTMLInputElement)?.value,
+          description: (document.querySelector('textarea[name="description"]') as HTMLTextAreaElement)?.value,
+        })
+        .eq('id', currentFramework.id);
+      
+      if (error) throw error;
+      
+      // Reload data
+      await loadControlFrameworks();
+    } catch (error) {
+      console.error('Error saving changes:', error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (controlFrameworks.length === 0) return;
+    
+    if (!confirm('Are you sure you want to delete this control framework?')) return;
+    
+    try {
+      setUpdating(true);
+      const currentFramework = controlFrameworks[selectedFramework];
+      
+      const { error } = await supabase
+        .from('control_framework')
+        .delete()
+        .eq('id', currentFramework.id);
+      
+      if (error) throw error;
+      
+      // Reload data and adjust selection
+      await loadControlFrameworks();
+      if (selectedFramework >= controlFrameworks.length - 1) {
+        setSelectedFramework(Math.max(0, controlFrameworks.length - 2));
+      }
+    } catch (error) {
+      console.error('Error deleting control framework:', error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex-1 p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <Skeleton className="h-8 w-8" />
+          <Skeleton className="h-8 w-64" />
+        </div>
+        <div className="flex gap-6 h-[calc(100vh-200px)]">
+          <div className="w-1/3">
+            <Card className="h-full">
+              <CardHeader>
+                <Skeleton className="h-6 w-48" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="flex-1">
+            <Card className="h-full">
+              <CardContent className="p-6">
+                <Skeleton className="h-6 w-32 mb-4" />
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Skeleton key={i} className="h-8 w-full" />
+                  ))}
+                </div>
+                <Skeleton className="h-6 w-32 mb-4" />
+                <Skeleton className="h-8 w-full mb-4" />
+                <Skeleton className="h-32 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (controlFrameworks.length === 0) {
+    return (
+      <div className="flex-1 p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => navigate(`/company-details/${companyId}`)}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-2xl font-bold text-card-foreground">Control Framework History</h1>
+        </div>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-muted-foreground">No control frameworks found for this company.</p>
+            <Button 
+              className="mt-4"
+              onClick={() => navigate(`/company-details/${companyId}`)}
+            >
+              Go Back to Company Details
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const currentFramework = controlFrameworks[selectedFramework];
 
   return (
     <div className="flex-1 p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-card-foreground">Control Framework History</h1>
-        <div className="flex space-x-2">
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-            Save Changes
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => navigate(`/company-details/${companyId}`)}
+          >
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-          <Button variant="destructive">
+          <h1 className="text-2xl font-bold text-card-foreground">Control Framework History</h1>
+        </div>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={handleSaveChanges}
+            disabled={updating}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {updating ? "Saving..." : "Save Changes"}
+          </Button>
+          <Button 
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={updating}
+          >
             Delete
           </Button>
         </div>
@@ -67,22 +210,26 @@ export default function ControlFrameworkHistory() {
         <div className="w-1/3">
           <Card className="bg-card h-full">
             <CardHeader>
-              <CardTitle className="text-card-foreground font-bold">Laws and Regulations</CardTitle>
+              <CardTitle className="text-card-foreground font-bold">Control Frameworks</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="space-y-2 p-4">
-                {lawsData.map((law, index) => (
+                {controlFrameworks.map((framework, index) => (
                   <div
-                    key={law.id}
+                    key={framework.id}
                     className={`p-3 rounded-md cursor-pointer transition-colors ${
-                      selectedLaw === index
+                      selectedFramework === index
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted hover:bg-muted/80 text-card-foreground"
                     }`}
-                    onClick={() => setSelectedLaw(index)}
+                    onClick={() => setSelectedFramework(index)}
                   >
-                    <div className="font-medium">{law.title}</div>
-                    <div className="text-sm opacity-70">{law.domain}</div>
+                    <div className="font-medium">
+                      {framework.laws_and_regulations?.name || 'Unnamed Framework'}
+                    </div>
+                    <div className="text-sm opacity-70">
+                      {framework.domains?.name || 'No Domain'} • {framework.countryapplied || 'No Country'}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -100,27 +247,31 @@ export default function ControlFrameworkHistory() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-card-foreground mb-1">Domain</label>
-                    <div className="text-card-foreground">{lawsData[selectedLaw].domain}</div>
+                    <div className="text-card-foreground">{currentFramework.domains?.name || 'N/A'}</div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-card-foreground mb-1">Activity</label>
-                    <div className="text-card-foreground">{lawsData[selectedLaw].activity}</div>
+                    <div className="text-card-foreground">{currentFramework.activities?.name || 'N/A'}</div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-card-foreground mb-1">Market</label>
-                    <div className="text-card-foreground">{lawsData[selectedLaw].market}</div>
+                    <div className="text-card-foreground">{currentFramework.markets?.name || 'N/A'}</div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-card-foreground mb-1">Country Applied</label>
-                    <div className="text-card-foreground">{lawsData[selectedLaw].countryApplied}</div>
+                    <div className="text-card-foreground">{currentFramework.countryapplied || 'N/A'}</div>
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-card-foreground mb-1">Detail</label>
-                    <div className="text-card-foreground">{lawsData[selectedLaw].detail}</div>
+                    <label className="block text-sm font-medium text-card-foreground mb-1">Law/Regulation</label>
+                    <div className="text-card-foreground">{currentFramework.laws_and_regulations?.name || 'N/A'}</div>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-card-foreground mb-1">Risk Management</label>
+                    <div className="text-card-foreground">{currentFramework.riskmanagement || 'N/A'}</div>
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-medium text-card-foreground mb-1">Referral Source</label>
-                    <div className="text-card-foreground">{lawsData[selectedLaw].referralSource}</div>
+                    <div className="text-card-foreground">{currentFramework.referralsource || 'N/A'}</div>
                   </div>
                 </div>
               </div>
@@ -132,14 +283,16 @@ export default function ControlFrameworkHistory() {
                   <div>
                     <label className="block text-sm font-medium text-card-foreground mb-1">Context</label>
                     <Input 
-                      defaultValue={lawsData[selectedLaw].context}
+                      name="context"
+                      defaultValue={currentFramework.context || ''}
                       className="w-full"
                     />
                   </div>
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-card-foreground mb-1">Description</label>
                     <Textarea 
-                      defaultValue={lawsData[selectedLaw].description}
+                      name="description"
+                      defaultValue={currentFramework.description || ''}
                       className="w-full h-32 resize-none"
                     />
                   </div>
@@ -150,15 +303,15 @@ export default function ControlFrameworkHistory() {
               <div className="flex justify-between mt-6">
                 <Button 
                   variant="outline"
-                  disabled={selectedLaw === 0}
-                  onClick={() => setSelectedLaw(Math.max(0, selectedLaw - 1))}
+                  disabled={selectedFramework === 0}
+                  onClick={() => setSelectedFramework(Math.max(0, selectedFramework - 1))}
                 >
                   Previous
                 </Button>
                 <Button 
                   variant="outline"
-                  disabled={selectedLaw === lawsData.length - 1}
-                  onClick={() => setSelectedLaw(Math.min(lawsData.length - 1, selectedLaw + 1))}
+                  disabled={selectedFramework === controlFrameworks.length - 1}
+                  onClick={() => setSelectedFramework(Math.min(controlFrameworks.length - 1, selectedFramework + 1))}
                 >
                   Next
                 </Button>
