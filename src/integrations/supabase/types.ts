@@ -75,6 +75,7 @@ export type Database = {
       }
       control_framework: {
         Row: {
+          company_id: string | null
           context: string | null
           countryapplied: string | null
           created_at: string
@@ -84,11 +85,13 @@ export type Database = {
           id_domain: string | null
           id_laws_and_regulations: string | null
           id_markets: string | null
+          isverify: boolean | null
           referralsource: string | null
           riskmanagement: string | null
           updated_at: string
         }
         Insert: {
+          company_id?: string | null
           context?: string | null
           countryapplied?: string | null
           created_at?: string
@@ -98,11 +101,13 @@ export type Database = {
           id_domain?: string | null
           id_laws_and_regulations?: string | null
           id_markets?: string | null
+          isverify?: boolean | null
           referralsource?: string | null
           riskmanagement?: string | null
           updated_at?: string
         }
         Update: {
+          company_id?: string | null
           context?: string | null
           countryapplied?: string | null
           created_at?: string
@@ -112,6 +117,7 @@ export type Database = {
           id_domain?: string | null
           id_laws_and_regulations?: string | null
           id_markets?: string | null
+          isverify?: boolean | null
           referralsource?: string | null
           riskmanagement?: string | null
           updated_at?: string
@@ -143,6 +149,13 @@ export type Database = {
             columns: ["id_markets"]
             isOneToOne: false
             referencedRelation: "markets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_control_framework_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -183,7 +196,6 @@ export type Database = {
         Row: {
           activity_id: string | null
           company_id: string
-          country: string
           created_at: string
           description: string
           domain_id: string | null
@@ -196,7 +208,6 @@ export type Database = {
         Insert: {
           activity_id?: string | null
           company_id: string
-          country: string
           created_at?: string
           description: string
           domain_id?: string | null
@@ -209,7 +220,6 @@ export type Database = {
         Update: {
           activity_id?: string | null
           company_id?: string
-          country?: string
           created_at?: string
           description?: string
           domain_id?: string | null

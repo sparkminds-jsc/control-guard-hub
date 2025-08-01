@@ -327,7 +327,8 @@ export default function CompanyDetails() {
           activities!control_framework_id_activities_fkey(name),
           markets!control_framework_id_markets_fkey(name),
           laws_and_regulations!control_framework_id_laws_and_regulations_fkey(name)
-        `);
+        `)
+        .eq('company_id', id);
       
       if (cfError) throw cfError;
       setControlFrameworks(cfData || []);
@@ -739,6 +740,7 @@ export default function CompanyDetails() {
             countryapplied: cf.countryApplied || '',
             riskmanagement: cf.riskManagement || '',
             referralsource: cf.referralSource || '',
+            company_id: id,
             isverify: false
           });
         }
@@ -1037,6 +1039,7 @@ export default function CompanyDetails() {
           id_activities: controlFrameworkForm.id_activities === "none" ? null : controlFrameworkForm.id_activities,
           id_markets: controlFrameworkForm.id_markets === "none" ? null : controlFrameworkForm.id_markets,
           id_laws_and_regulations: controlFrameworkForm.id_laws_and_regulations === "none" ? null : controlFrameworkForm.id_laws_and_regulations,
+          company_id: id,
           isverify: false
         } as any);
 
