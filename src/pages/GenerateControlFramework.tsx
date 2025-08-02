@@ -272,7 +272,18 @@ export default function GenerateControlFramework() {
       
       // Call API to external service
       const response = await fetch(`https://n8n.sparkminds.net/webhook/6812a814-9d51-43e1-aff8-46bd1b01d4de?websiteUrl=${encodeURIComponent(formData.websiteUrl)}&companyName=${encodeURIComponent(formData.companyName)}`);
-      const apiData = await response.json();
+      
+      let apiData = null;
+      const responseText = await response.text();
+      
+      if (responseText && responseText.trim()) {
+        try {
+          apiData = JSON.parse(responseText);
+        } catch (parseError) {
+          console.warn('Failed to parse API response as JSON:', parseError);
+          apiData = null;
+        }
+      }
       
       console.log('API Response:', apiData);
       
@@ -281,7 +292,7 @@ export default function GenerateControlFramework() {
         name: formData.companyName,
         website_url: formData.websiteUrl,
         duns_number: formData.dunsNumber || null,
-        country: apiData.country || null
+        country: apiData?.country || null
       };
 
       const { data: company, error } = await supabase
