@@ -425,7 +425,7 @@ export default function GenerateControlFramework() {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="company-name" className="text-card-foreground font-medium">Company Name</Label>
+                    <Label htmlFor="company-name" className="text-white font-medium">Company Name</Label>
                     <Input
                       id="company-name"
                       placeholder="Enter company name"
@@ -435,7 +435,7 @@ export default function GenerateControlFramework() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="website-url" className="text-card-foreground font-medium">Website URL</Label>
+                    <Label htmlFor="website-url" className="text-white font-medium">Website URL</Label>
                     <Input
                       id="website-url"
                       placeholder="Enter website URL"
@@ -445,7 +445,7 @@ export default function GenerateControlFramework() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="duns-number" className="text-card-foreground font-medium">DUNS Number (Optional)</Label>
+                    <Label htmlFor="duns-number" className="text-white font-medium">DUNS Number (Optional)</Label>
                     <Input
                       id="duns-number"
                       placeholder="Enter DUNS number"
