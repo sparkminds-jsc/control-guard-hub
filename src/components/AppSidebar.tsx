@@ -22,7 +22,7 @@ import {
 
 const menuItems = [
   {
-    titleKey: "nav.legal_center",
+    titleKey: "nav.framework",
     url: "/",
     icon: FileText,
   },
@@ -32,9 +32,19 @@ const menuItems = [
     icon: History,
   },
   {
-    titleKey: "nav.manage_feedback",
+    titleKey: "nav.company_info",
     url: "/company-info",
     icon: Building,
+  },
+  {
+    titleKey: "nav.company_laws",
+    url: "/company-laws",
+    icon: Scale,
+  },
+  {
+    titleKey: "nav.company_control",
+    url: "/company-control",
+    icon: Shield,
   },
 ];
 

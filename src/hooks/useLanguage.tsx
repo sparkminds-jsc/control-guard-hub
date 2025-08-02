@@ -19,9 +19,11 @@ const languages: Language[] = [
 
 const translations = {
   en: {
-    'nav.legal_center': 'Legal Center',
+    'nav.framework': 'Generate Control Framework',
     'nav.history': 'Control Framework',
-    'nav.manage_feedback': 'Manage Feedback',
+    'nav.company_info': 'Company Info Feedback',
+    'nav.company_laws': 'Company Laws Feedback', 
+    'nav.company_control': 'Company Control Feedback',
     'button.export': 'Export to Excel',
     'button.view_details': 'View Details',
     'button.verify': 'Verify',
@@ -47,9 +49,11 @@ const translations = {
     'no_data': 'No data available',
   },
   vi: {
-    'nav.legal_center': 'Trung Tâm Pháp Lý',
+    'nav.framework': 'Tạo Khung Kiểm Soát',
     'nav.history': 'Lịch Sử Khung Kiểm Soát',
-    'nav.manage_feedback': 'Quản Lý Phản Hồi',
+    'nav.company_info': 'Phản Hồi Thông Tin Công Ty',
+    'nav.company_laws': 'Phản Hồi Luật Công Ty',
+    'nav.company_control': 'Phản Hồi Kiểm Soát Công Ty',
     'button.export': 'Xuất Excel',
     'button.view_details': 'Xem Chi Tiết',
     'button.verify': 'Xác Minh',
