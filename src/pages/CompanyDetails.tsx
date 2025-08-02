@@ -88,6 +88,10 @@ export default function CompanyDetails() {
   const [apiLoading, setApiLoading] = useState(false);
   const [lawsAndRegulations, setLawsAndRegulations] = useState<any[]>([]);
   
+  // Button loading states
+  const [generateLawsLoading, setGenerateLawsLoading] = useState(false);
+  const [generateControlFrameworkLoading, setGenerateControlFrameworkLoading] = useState(false);
+  
   // Pagination and filtering state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -296,6 +300,17 @@ export default function CompanyDetails() {
 
       // Load control frameworks and check if generated
       await loadControlFrameworks();
+      
+      // Auto show sections if company has fetched details
+      if (companyData?.company_details_fetched) {
+        setShowDetails(true);
+      }
+      if (companyData?.laws_generated || lawsAndRegulations.length > 0) {
+        setShowLawsRegulations(true);
+      }
+      if (companyData?.control_framework_generated || controlFrameworks.length > 0) {
+        setShowControlFramework(true);
+      }
 
     } catch (error) {
       console.error('Error loading company data:', error);
@@ -699,7 +714,7 @@ export default function CompanyDetails() {
   // Handle Generate Control Framework API call
   const handleGenerateControlFramework = async () => {
     try {
-      setApiLoading(true);
+      setGenerateControlFrameworkLoading(true);
       
       const apiData = transformDataForAPI();
       
@@ -774,6 +789,12 @@ export default function CompanyDetails() {
         await loadControlFrameworks();
         setControlFrameworkGenerated(true);
         setShowControlFramework(true);
+        
+        // Update company control_framework_generated status
+        await supabase
+          .from('companies')
+          .update({ control_framework_generated: true })
+          .eq('id', id);
       }
       
       toast({
@@ -791,7 +812,7 @@ export default function CompanyDetails() {
         className: "fixed top-4 right-4 w-auto"
       });
     } finally {
-      setApiLoading(false);
+      setGenerateControlFrameworkLoading(false);
     }
   };
 
@@ -909,7 +930,7 @@ export default function CompanyDetails() {
 
   const handleGenerateLaws = async () => {
     try {
-      setApiLoading(true);
+      setGenerateLawsLoading(true);
       
       const response = await fetch('https://n8n.sparkminds.net/webhook/ed834647-9c18-4e33-9f33-5bb398fb35db', {
         method: 'POST',
@@ -1005,6 +1026,14 @@ export default function CompanyDetails() {
         // Reload laws and regulations data
         await loadLawsAndRegulations();
         
+        // Update company laws_generated status
+        await supabase
+          .from('companies')
+          .update({ laws_generated: true })
+          .eq('id', id);
+          
+        setShowLawsRegulations(true);
+        
         toast({
           title: "Generated Successfully",
           description: "Laws and regulations have been generated and saved successfully.",
@@ -1023,7 +1052,7 @@ export default function CompanyDetails() {
         className: "fixed top-4 right-4 w-auto"
       });
     } finally {
-      setApiLoading(false);
+      setGenerateLawsLoading(false);
     }
   };
 
@@ -1413,7 +1442,15 @@ export default function CompanyDetails() {
           <div className="flex space-x-2">
             <Button 
               className="bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={() => setShowDetails(true)}
+              onClick={async () => {
+                setShowDetails(true);
+                // Update company_details_fetched status
+                await supabase
+                  .from('companies')
+                  .update({ company_details_fetched: true })
+                  .eq('id', id);
+              }}
+              disabled={company?.company_details_fetched}
             >
               Get Company Details
             </Button>
@@ -1696,23 +1733,23 @@ export default function CompanyDetails() {
               <Button 
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleGenerateLaws}
-                disabled={loading}
+                disabled={generateLawsLoading || company?.laws_generated}
               >
-                {loading ? "Generating..." : "Generate Laws and Regulation"}
-              </Button>
-              <Button 
-                variant="outline"
-                className="bg-card border-border text-card-foreground hover:bg-accent"
-                onClick={() => setShowLawsRegulations(!showLawsRegulations)}
-              >
-                {showLawsRegulations ? 'Hide Laws and Regulations' : 'See Laws and Regulations'}
+                {generateLawsLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate Laws and Regulation"
+                )}
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {showLawsRegulations && (
+      {(showLawsRegulations || lawsAndRegulations.length > 0) && (
         <Card className="bg-card">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -1920,9 +1957,9 @@ export default function CompanyDetails() {
               <Button 
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleGenerateControlFramework}
-                disabled={loading || lawsAndRegulations.length === 0}
+                disabled={generateControlFrameworkLoading || lawsAndRegulations.length === 0 || company?.control_framework_generated}
               >
-                {loading ? (
+                {generateControlFrameworkLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Generating...
@@ -1931,22 +1968,13 @@ export default function CompanyDetails() {
                   "Generate Control Framework"
                 )}
               </Button>
-              {controlFrameworkGenerated && (
-                <Button 
-                  variant="outline"
-                  className="bg-card border-border text-card-foreground hover:bg-accent"
-                  onClick={() => setShowControlFramework(!showControlFramework)}
-                >
-                  {showControlFramework ? 'Hide Control Framework' : 'See Control Framework'}
-                </Button>
-              )}
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Control Framework Section */}
-      {showControlFramework && (
+      {(showControlFramework || controlFrameworks.length > 0) && (
         <Card className="bg-card">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -2915,8 +2943,6 @@ export default function CompanyDetails() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Global API Loading Overlay */}
-      <LoadingOverlay isVisible={apiLoading} />
 
       <Toaster />
     </div>
