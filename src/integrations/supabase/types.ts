@@ -48,39 +48,30 @@ export type Database = {
       }
       companies: {
         Row: {
-          company_details_fetched: boolean | null
-          control_framework_generated: boolean | null
           country: string | null
           created_at: string
           duns_number: string | null
           id: string
-          laws_generated: boolean | null
           name: string
           status: string
           updated_at: string
           website_url: string | null
         }
         Insert: {
-          company_details_fetched?: boolean | null
-          control_framework_generated?: boolean | null
           country?: string | null
           created_at?: string
           duns_number?: string | null
           id?: string
-          laws_generated?: boolean | null
           name: string
           status?: string
           updated_at?: string
           website_url?: string | null
         }
         Update: {
-          company_details_fetched?: boolean | null
-          control_framework_generated?: boolean | null
           country?: string | null
           created_at?: string
           duns_number?: string | null
           id?: string
-          laws_generated?: boolean | null
           name?: string
           status?: string
           updated_at?: string
@@ -211,7 +202,6 @@ export type Database = {
         Row: {
           activity_id: string | null
           company_id: string
-          country_applied: string | null
           created_at: string
           description: string
           domain_id: string | null
@@ -224,7 +214,6 @@ export type Database = {
         Insert: {
           activity_id?: string | null
           company_id: string
-          country_applied?: string | null
           created_at?: string
           description: string
           domain_id?: string | null
@@ -237,7 +226,6 @@ export type Database = {
         Update: {
           activity_id?: string | null
           company_id?: string
-          country_applied?: string | null
           created_at?: string
           description?: string
           domain_id?: string | null

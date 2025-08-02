@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,14 +37,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 import { Toaster } from "@/components/ui/toaster";
-
-interface ApiResponse {
-  country?: string;
-  domains?: Array<string | { name: string }>;
-  bussinessDomain?: Array<string | { name: string }>;
-  activities?: Array<string | { name: string }>;
-  markets?: Array<string | { name: string }>;
-}
 
 export default function GenerateControlFramework() {
   const navigate = useNavigate();
@@ -277,37 +270,11 @@ export default function GenerateControlFramework() {
     try {
       setLoading(true);
       
-      console.log('Starting company save process...');
-      console.log('Form data:', formData);
-      
       // Call API to external service
-      const apiUrl = `https://n8n.sparkminds.net/webhook/6812a814-9d51-43e1-aff8-46bd1b01d4de?websiteUrl=${encodeURIComponent(formData.websiteUrl)}&companyName=${encodeURIComponent(formData.companyName)}`;
-      console.log('Calling external API:', apiUrl);
+      const response = await fetch(`https://n8n.sparkminds.net/webhook/6812a814-9d51-43e1-aff8-46bd1b01d4de?websiteUrl=${encodeURIComponent(formData.websiteUrl)}&companyName=${encodeURIComponent(formData.companyName)}`);
+      const apiData = await response.json();
       
-      const response = await fetch(apiUrl);
-      console.log('API response status:', response.status);
-      
-      if (!response.ok) {
-        console.error('API response not ok:', response.status, response.statusText);
-        throw new Error(`API call failed: ${response.status}`);
-      }
-      
-      // Check if response has content before trying to parse as JSON
-      const responseText = await response.text();
-      console.log('API response text:', responseText);
-      
-      let apiData: ApiResponse = {};
-      if (responseText && responseText.trim() !== '') {
-        try {
-          apiData = JSON.parse(responseText) as ApiResponse;
-          console.log('API Response data:', apiData);
-        } catch (jsonError) {
-          console.warn('Failed to parse API response as JSON:', jsonError);
-          console.log('Using empty object for API data');
-        }
-      } else {
-        console.log('API returned empty response, using empty object');
-      }
+      console.log('API Response:', apiData);
       
       // Save to companies table with API response data
       const companyData = {
@@ -317,81 +284,51 @@ export default function GenerateControlFramework() {
         country: apiData.country || null
       };
 
-      console.log('Saving company data to Supabase:', companyData);
-
       const { data: company, error } = await supabase
         .from('companies')
         .insert(companyData)
         .select()
         .single();
 
-      if (error) {
-        console.error('Supabase insert error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Company saved successfully:', company);
+      console.log('Company saved:', company);
       
       // If API returns domains, activities, markets data, save them to respective tables
       if (company && apiData) {
-        console.log('Saving related data...');
-        
         // Save domains if provided (check both 'domains' and 'bussinessDomain' fields)
         if ((apiData.domains && Array.isArray(apiData.domains)) || 
             (apiData.bussinessDomain && Array.isArray(apiData.bussinessDomain))) {
           const domainsData = apiData.domains || apiData.bussinessDomain;
-          console.log('Domains to save:', domainsData);
-          
           const domainsToInsert = domainsData.map((domain: any) => ({
             company_id: company.id,
             name: typeof domain === 'string' ? domain : domain.name
           }));
           
-          const { error: domainsError } = await supabase.from('domains').insert(domainsToInsert);
-          if (domainsError) {
-            console.error('Error saving domains:', domainsError);
-          } else {
-            console.log('Domains saved successfully');
-          }
+          await supabase.from('domains').insert(domainsToInsert);
         }
 
         // Save activities if provided
         if (apiData.activities && Array.isArray(apiData.activities)) {
-          console.log('Activities to save:', apiData.activities);
-          
           const activitiesToInsert = apiData.activities.map((activity: any) => ({
             company_id: company.id,
             name: typeof activity === 'string' ? activity : activity.name
           }));
           
-          const { error: activitiesError } = await supabase.from('activities').insert(activitiesToInsert);
-          if (activitiesError) {
-            console.error('Error saving activities:', activitiesError);
-          } else {
-            console.log('Activities saved successfully');
-          }
+          await supabase.from('activities').insert(activitiesToInsert);
         }
 
         // Save markets if provided
         if (apiData.markets && Array.isArray(apiData.markets)) {
-          console.log('Markets to save:', apiData.markets);
-          
           const marketsToInsert = apiData.markets.map((market: any) => ({
             company_id: company.id,
             name: typeof market === 'string' ? market : market.name
           }));
           
-          const { error: marketsError } = await supabase.from('markets').insert(marketsToInsert);
-          if (marketsError) {
-            console.error('Error saving markets:', marketsError);
-          } else {
-            console.log('Markets saved successfully');
-          }
+          await supabase.from('markets').insert(marketsToInsert);
         }
       }
 
-      console.log('Reloading companies list...');
-      
       // Reload companies list to show the new company
       await loadCompanies();
       
@@ -402,19 +339,13 @@ export default function GenerateControlFramework() {
         .eq('status', 'active');
 
       if (!checkError && allCompanies && allCompanies.length === 1 && user?.email) {
-        console.log('Auto-setting as current company...');
         // Auto-set as current company if it's the only one
-        const { error: updateError } = await supabase
+        await supabase
           .from('users')
           .update({ id_company: company.id })
           .eq('email', user.email);
         
-        if (updateError) {
-          console.error('Error setting current company:', updateError);
-        } else {
-          setCurrentUserCompanyId(company.id);
-          console.log('Set as current company successfully');
-        }
+        setCurrentUserCompanyId(company.id);
       }
       
       // Show success toast
@@ -430,19 +361,11 @@ export default function GenerateControlFramework() {
         websiteUrl: "",
         dunsNumber: ""
       });
-      
-      console.log('Company save process completed successfully');
     } catch (error) {
-      console.error('Error in handleSave:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      
+      console.error('Error saving company:', error);
       toast({
         title: "Add Company Failed",
-        description: `Failed to add company. Error: ${error.message}`,
+        description: "Failed to add company. Please try again.",
         variant: "destructive",
         className: "fixed top-4 right-4 w-auto"
       });
