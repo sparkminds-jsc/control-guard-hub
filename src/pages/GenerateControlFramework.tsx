@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,6 +36,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 import { Toaster } from "@/components/ui/toaster";
+
+interface ApiResponse {
+  country?: string;
+  domains?: Array<string | { name: string }>;
+  bussinessDomain?: Array<string | { name: string }>;
+  activities?: Array<string | { name: string }>;
+  markets?: Array<string | { name: string }>;
+}
 
 export default function GenerateControlFramework() {
   const navigate = useNavigate();
@@ -289,10 +296,10 @@ export default function GenerateControlFramework() {
       const responseText = await response.text();
       console.log('API response text:', responseText);
       
-      let apiData = {};
+      let apiData: ApiResponse = {};
       if (responseText && responseText.trim() !== '') {
         try {
-          apiData = JSON.parse(responseText);
+          apiData = JSON.parse(responseText) as ApiResponse;
           console.log('API Response data:', apiData);
         } catch (jsonError) {
           console.warn('Failed to parse API response as JSON:', jsonError);
@@ -326,7 +333,7 @@ export default function GenerateControlFramework() {
       console.log('Company saved successfully:', company);
       
       // If API returns domains, activities, markets data, save them to respective tables
-      if (company && apiData && typeof apiData === 'object') {
+      if (company && apiData) {
         console.log('Saving related data...');
         
         // Save domains if provided (check both 'domains' and 'bussinessDomain' fields)
