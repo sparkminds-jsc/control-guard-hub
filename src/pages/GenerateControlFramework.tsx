@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -284,8 +285,22 @@ export default function GenerateControlFramework() {
         throw new Error(`API call failed: ${response.status}`);
       }
       
-      const apiData = await response.json();
-      console.log('API Response data:', apiData);
+      // Check if response has content before trying to parse as JSON
+      const responseText = await response.text();
+      console.log('API response text:', responseText);
+      
+      let apiData = {};
+      if (responseText && responseText.trim() !== '') {
+        try {
+          apiData = JSON.parse(responseText);
+          console.log('API Response data:', apiData);
+        } catch (jsonError) {
+          console.warn('Failed to parse API response as JSON:', jsonError);
+          console.log('Using empty object for API data');
+        }
+      } else {
+        console.log('API returned empty response, using empty object');
+      }
       
       // Save to companies table with API response data
       const companyData = {
@@ -311,7 +326,7 @@ export default function GenerateControlFramework() {
       console.log('Company saved successfully:', company);
       
       // If API returns domains, activities, markets data, save them to respective tables
-      if (company && apiData) {
+      if (company && apiData && typeof apiData === 'object') {
         console.log('Saving related data...');
         
         // Save domains if provided (check both 'domains' and 'bussinessDomain' fields)
