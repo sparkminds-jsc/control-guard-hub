@@ -1957,7 +1957,7 @@ export default function CompanyDetails() {
               <Button
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleGenerateControlFramework}
-                disabled={generateControlFrameworkLoading || lawsAndRegulations.length === 0 || company?.laws_generated}
+                disabled={generateControlFrameworkLoading || lawsAndRegulations.length === 0 || company?.control_framework_generated}
               >
                 {generateControlFrameworkLoading ? (
                   <>
