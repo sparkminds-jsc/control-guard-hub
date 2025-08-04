@@ -31,9 +31,9 @@ const SidebarWithToggle = () => {
       <AppSidebar />
       {/* Nút toggle điều chỉnh vị trí theo trạng thái sidebar */}
       <SidebarTrigger 
-        className="absolute top-1/2 -translate-y-1/2 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full w-8 h-8 flex items-center justify-center shadow-2xl transition-all duration-300 ease-in-out border-2 border-background"
+        className="fixed top-1/2 -translate-y-1/2 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full w-8 h-8 flex items-center justify-center shadow-2xl transition-all duration-300 ease-in-out border-2 border-background"
         style={{
-          right: isCollapsed ? '-16px' : '-48px',
+          left: isCollapsed ? '56px' : '240px',
         }}
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
