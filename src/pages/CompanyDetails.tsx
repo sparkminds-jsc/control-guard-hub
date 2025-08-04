@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Plus, Edit, Eye, Search, Filter, Loader2 } from "lucide-react";
+import { Trash2, Plus, Edit, Eye, Search, Filter, Loader2, ChevronRight } from "lucide-react";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -1469,7 +1469,10 @@ export default function CompanyDetails() {
         <Card className="bg-card">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-card-foreground font-bold">Detail Section</CardTitle>
+              <CardTitle className="text-card-foreground font-bold flex items-center gap-2">
+                <ChevronRight className="h-4 w-4" />
+                Detail Section
+              </CardTitle>
               <div className="flex gap-2">
                 <Button
                   size="sm"
