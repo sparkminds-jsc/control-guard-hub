@@ -33,7 +33,7 @@ const SidebarWithToggle = () => {
       <SidebarTrigger 
         className="fixed top-1/2 -translate-y-1/2 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full w-8 h-8 flex items-center justify-center shadow-2xl transition-all duration-300 ease-in-out border-2 border-background"
         style={{
-          left: isCollapsed ? '56px' : '240px',
+          left: isCollapsed ? '32px' : '270px',
         }}
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
