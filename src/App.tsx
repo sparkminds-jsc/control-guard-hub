@@ -36,7 +36,7 @@ const SidebarWithToggle = () => {
           left: isCollapsed ? '32px' : '270px',
         }}
       >
-        {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        <ChevronRight className="w-4 h-4" />
       </SidebarTrigger>
     </div>
   );
