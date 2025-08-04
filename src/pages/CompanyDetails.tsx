@@ -1730,7 +1730,7 @@ export default function CompanyDetails() {
             </div>
 
             <div className="flex gap-4">
-              <Button 
+              <Button
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleGenerateLaws}
                 disabled={generateLawsLoading || company?.laws_generated}
@@ -1954,10 +1954,10 @@ export default function CompanyDetails() {
 
             {/* Control Framework Buttons */}
             <div className="flex justify-end space-x-2 pt-4 border-t border-border">
-              <Button 
+              <Button
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={handleGenerateControlFramework}
-                disabled={generateControlFrameworkLoading || lawsAndRegulations.length === 0 || company?.control_framework_generated}
+                disabled={generateControlFrameworkLoading || lawsAndRegulations.length === 0 || company?.laws_generated}
               >
                 {generateControlFrameworkLoading ? (
                   <>
