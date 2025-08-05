@@ -2090,11 +2090,11 @@ export default function CompanyDetails() {
                 <TableRow>
                   <TableHead className="text-card-foreground font-bold">No</TableHead>
                   <TableHead className="text-card-foreground font-bold">Context</TableHead>
+                  <TableHead className="text-card-foreground font-bold">Description</TableHead>
                   <TableHead className="text-card-foreground font-bold">Domain</TableHead>
                   <TableHead className="text-card-foreground font-bold">Activity</TableHead>
                   <TableHead className="text-card-foreground font-bold">Country Applied</TableHead>
                   <TableHead className="text-card-foreground font-bold">Law & Regulation</TableHead>
-                  <TableHead className="text-card-foreground font-bold">Referral Source</TableHead>
                   <TableHead className="text-card-foreground font-bold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -2105,6 +2105,9 @@ export default function CompanyDetails() {
                       <TableCell className="text-card-foreground">{cfStartIndex + index + 1}</TableCell>
                       <TableCell className="text-card-foreground max-w-xs truncate" title={cf.context}>
                         {cf.context || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.description}>
+                        {cf.description || 'N/A'}
                       </TableCell>
                       <TableCell className="text-card-foreground">
                         {cf.domains?.name || 'N/A'}
@@ -2117,9 +2120,6 @@ export default function CompanyDetails() {
                       </TableCell>
                       <TableCell className="text-card-foreground max-w-xs truncate" title={cf.laws_and_regulations?.name}>
                         {cf.laws_and_regulations?.name || 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-card-foreground max-w-xs truncate" title={cf.referralsource}>
-                        {cf.referralsource || 'N/A'}
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
