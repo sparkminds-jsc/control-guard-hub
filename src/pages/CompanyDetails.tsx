@@ -718,7 +718,7 @@ export default function CompanyDetails() {
       
       const apiData = transformDataForAPI();
       
-      const response = await fetch('https://n8n.sparkminds.net/webhook/518265e4-3bee-4871-9450-994b3a271101', {
+      const response = await fetch('https://abilene.sparkminds.net/webhook/518265e4-3bee-4871-9450-994b3a271101', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -932,7 +932,7 @@ export default function CompanyDetails() {
     try {
       setGenerateLawsLoading(true);
       
-      const response = await fetch('https://n8n.sparkminds.net/webhook/ed834647-9c18-4e33-9f33-5bb398fb35db', {
+      const response = await fetch('https://abilene.sparkminds.net/webhook/ed834647-9c18-4e33-9f33-5bb398fb35db', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
