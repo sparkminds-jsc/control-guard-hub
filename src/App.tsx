@@ -15,7 +15,7 @@ import CompanyLawsFeedback from "./pages/CompanyLawsFeedback";
 import CompanyControlFeedback from "./pages/CompanyControlFeedback";
 import CompanyDetails from "./pages/CompanyDetails";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
+
 import ControlFrameworkDetail from "./pages/ControlFrameworkDetail";
 import LawRegulationDetail from "./pages/LawRegulationDetail";
 import NotFound from "./pages/NotFound";
@@ -52,7 +52,7 @@ const App = () => (
         <Routes>
           {/* Auth routes without sidebar and header */}
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          
           
           {/* Main app routes with sidebar and header */}
           <Route path="/*" element={

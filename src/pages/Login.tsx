@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -110,17 +110,6 @@ const Login = () => {
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link 
-                to="/register" 
-                className="font-medium text-primary hover:underline"
-              >
-                Create new account
-              </Link>
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
